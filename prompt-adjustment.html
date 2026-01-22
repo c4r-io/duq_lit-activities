@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LLM Task Explorer</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useRef, useEffect } = React;
+
+    // Lucide React icons as inline SVG components
+    const Copy = ({ size = 24, className = "" }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+        <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+      </svg>
+    );
+
+    const Send = ({ size = 24, className = "" }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="m22 2-7 20-4-9-9-4Z"/>
+        <path d="M22 2 11 13"/>
+      </svg>
+    );
+
+    const ArrowRight = ({ size = 24, className = "" }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M5 12h14"/>
+        <path d="m12 5 7 7-7 7"/>
+      </svg>
+    );
+
+    const CheckCircle2 = ({ size = 24, className = "" }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <circle cx="12" cy="12" r="10"/>
+        <path d="m9 12 2 2 4-4"/>
+      </svg>
+    );
+
+    const LLMTaskExplorer = () => {
+      const [phase, setPhase] = useState('initial');
+      const [promptText, setPromptText] = useState('');
+      const [conversation, setConversation] = useState([]);
+      const [initialPromptCount, setInitialPromptCount] = useState(0);
+      const [taskCompletions, setTaskCompletions] = useState({
+        adjustLevel: 0,
+        adjustStructure: 0,
+        getBroader: 0,
+        narrowIn: 0,
+        requestFrameworks: 0,
+        checkUnderstanding: 0
+      });
+      const [unmatchedPrompts, setUnmatchedPrompts] = useState([]);
+      const [showToast, setShowToast] = useState(false);
+      const [reflection1, setReflection1] = useState('');
+      const [reflection2, setReflection2] = useState('');
+      const [celebratingTask, setCelebratingTask] = useState(null);
+      
+      const chatEndRef = useRef(null);
+      const promptInputRef = useRef(null);
+      const reflectionChatEndRef = useRef(null);
+
+      const tasks = {
+        formatting: [
+          {
+            id: 'adjustLevel',
+            name: 'Adjust the level',
+            template: 'Please change the level of technical detail by _____',
+            keyPhrases: { required: ['level'], oneOf: ['technical', 'detail'] }
+          },
+          {
+            id: 'adjustStructure',
+            name: 'Adjust the structure',
+            template: 'Please change the structure of this response to _____',
+            keyPhrases: { required: ['structure', 'response'], oneOf: [] }
+          }
+        ],
+        scope: [
+          {
+            id: 'getBroader',
+            name: 'Get broader context',
+            template: 'Give me a broad overview of research on [single topic]',
+            keyPhrases: { required: [], oneOf: ['broad', 'overview'], andAlso: ['research', 'literature'] }
+          },
+          {
+            id: 'narrowIn',
+            name: 'Narrow in',
+            template: 'Tell me more about ______',
+            keyPhrases: { required: [], oneOf: ['tell me more', 'more about', 'focus on', 'specifically', 'tell me about'] }
+          }
+        ],
+        conceptual: [
+          {
+            id: 'requestFrameworks',
+            name: 'Request frameworks',
+            template: 'What are the major theories relating ___ to ___?',
+            keyPhrases: { required: [], oneOf: ['theories', 'frameworks', 'models', 'hypotheses'] }
+          },
+          {
+            id: 'checkUnderstanding',
+            name: 'Check your understanding',
+            template: 'Is this correct? [your summary]',
+            keyPhrases: { required: [], oneOf: ['is this correct', 'is this accurate', 'is my understanding', 'did i get this right', 'am i right'] }
+          }
+        ]
+      };
+
+      const checkTaskCompletion = (prompt) => {
+        const lowerPrompt = prompt.toLowerCase();
+        let matchedTask = null;
+
+        Object.values(tasks).flat().forEach(task => {
+          const { required = [], oneOf = [], andAlso = [] } = task.keyPhrases;
+          
+          const hasRequired = required.every(phrase => lowerPrompt.includes(phrase.toLowerCase()));
+          const hasOneOf = oneOf.length === 0 || oneOf.some(phrase => lowerPrompt.includes(phrase.toLowerCase()));
+          const hasAndAlso = andAlso.length === 0 || andAlso.some(phrase => lowerPrompt.includes(phrase.toLowerCase()));
+          
+          if (hasRequired && hasOneOf && hasAndAlso) {
+            matchedTask = task.id;
+          }
+        });
+
+        if (matchedTask) {
+          setTaskCompletions(prev => ({
+            ...prev,
+            [matchedTask]: prev[matchedTask] + 1
+          }));
+          
+          setCelebratingTask(matchedTask);
+          setTimeout(() => setCelebratingTask(null), 1000);
+          
+          const uniqueCompleted = Object.values({...taskCompletions, [matchedTask]: taskCompletions[matchedTask] + 1})
+            .filter(count => count > 0).length;
+          
+          if (uniqueCompleted >= 3) {
+            setShowToast(true);
+            setTimeout(() => setShowToast(false), 5000);
+          }
+        } else {
+          setUnmatchedPrompts(prev => [...prev, prompt]);
+        }
+      };
+
+      const handleCopyTemplate = (template) => {
+        const newText = promptText ? promptText + ' ' + template : template;
+        setPromptText(newText);
+        promptInputRef.current?.focus();
+      };
+
+      const handleSendMessage = () => {
+        if (!promptText.trim()) return;
+
+        setConversation(prev => [...prev, { role: 'user', content: promptText }]);
+        
+        if (phase === 'exploration') {
+          checkTaskCompletion(promptText);
+        } else if (phase === 'initial') {
+          setInitialPromptCount(prev => prev + 1);
+        }
+        
+        setTimeout(() => {
+          setConversation(prev => [...prev, { 
+            role: 'assistant', 
+            content: 'Placeholder for chat response (with scrolling)' 
+          }]);
+          
+          if (phase === 'initial' && initialPromptCount + 1 >= 3) {
+            setPhase('exploration');
+          }
+        }, 300);
+        
+        setPromptText('');
+      };
+
+      const handleKeyPress = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          handleSendMessage();
+        }
+      };
+
+      const getTotalCompletions = () => {
+        return Object.values(taskCompletions).reduce((sum, count) => sum + count, 0);
+      };
+
+      const getUniqueCompletions = () => {
+        return Object.values(taskCompletions).filter(count => count > 0).length;
+      };
+
+      const canProceedToReflection = () => {
+        return getUniqueCompletions() >= 3;
+      };
+
+      const TaskItem = ({ task, count, celebrating }) => (
+        <div className={`p-3 rounded border transition-all duration-300 ${
+          count > 0 ? 'bg-green-50 border-green-300' : 'bg-white border-gray-200'
+        } ${celebrating ? 'scale-105 shadow-lg' : ''}`}>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="font-semibold text-gray-800 text-sm">{task.name}</span>
+            {count > 0 && (
+              <div className="flex gap-1">
+                {[...Array(count)].map((_, i) => (
+                  <CheckCircle2 key={i} className="text-green-600" size={14} />
+                ))}
+              </div>
+            )}
+          </div>
+          <p className={`text-xs mb-3 ${count > 0 ? 'text-gray-500' : 'text-gray-700'}`}>
+            "{task.template}"
+          </p>
+          <button
+            onClick={() => handleCopyTemplate(task.template)}
+            className={`text-xs px-2 py-1 rounded inline-flex items-center gap-1 transition-colors ${
+              count > 0 
+                ? 'bg-gray-200 text-gray-600 hover:bg-gray-300' 
+                : 'bg-blue-500 text-white hover:bg-blue-600'
+            }`}
+          >
+            <Copy size={11} />
+            Copy
+          </button>
+        </div>
+      );
+
+      useEffect(() => {
+        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, [conversation]);
+
+      useEffect(() => {
+        reflectionChatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, [phase]);
+
+      if (phase === 'reflection') {
+        return (
+          <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
+            <div className="bg-orange-500 text-white p-4 flex-shrink-0">
+              <div className="max-w-7xl mx-auto">
+                <h1 className="text-2xl font-bold mb-1">Reflection</h1>
+                <p className="text-sm">Think about the strategies you used during your exploration.</p>
+              </div>
+            </div>
+
+            <div className="flex-1 max-w-7xl mx-auto w-full p-4 grid grid-cols-2 gap-4 min-h-0">
+              <div className="flex flex-col gap-4 overflow-y-auto">
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h3 className="font-bold text-gray-800 mb-4">Your Exploration Summary</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+                    <div className="bg-blue-50 p-3 rounded">
+                      <div className="font-semibold text-gray-700">Total prompts sent:</div>
+                      <div className="text-2xl font-bold text-blue-600">{conversation.filter(m => m.role === 'user').length}</div>
+                    </div>
+                    <div className="bg-green-50 p-3 rounded">
+                      <div className="font-semibold text-gray-700">Strategies used:</div>
+                      <div className="text-2xl font-bold text-green-600">{getTotalCompletions()}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="text-xs text-gray-600">
+                    <strong>Strategy usage:</strong>
+                    {Object.entries(taskCompletions).map(([key, count]) => (
+                      count > 0 && <span key={key} className="ml-2">• {key}: {count}x</span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <div className="mb-6">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      1. Which strategies were most useful for finding specific information you needed? Why?
+                    </label>
+                    <textarea
+                      value={reflection1}
+                      onChange={(e) => setReflection1(e.target.value)}
+                      rows="5"
+                      className="w-full p-3 border border-gray-300 rounded text-sm"
+                      placeholder="Reflect on which strategies helped you locate the information you were looking for..."
+                    />
+                  </div>
+
+                  <div className="mb-6">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      2. Which strategies helped you build your own understanding of the topic in meaningful ways? How?
+                    </label>
+                    <textarea
+                      value={reflection2}
+                      onChange={(e) => setReflection2(e.target.value)}
+                      rows="5"
+                      className="w-full p-3 border border-gray-300 rounded text-sm"
+                      placeholder="Reflect on which strategies deepened your comprehension and helped you make sense of the topic..."
+                    />
+                  </div>
+
+                  <button
+                    onClick={() => alert('Reflection submitted! (In production, this would save to backend)')}
+                    disabled={!reflection1 || !reflection2}
+                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded transition-colors"
+                  >
+                    Submit Reflection
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg shadow-md p-4 overflow-y-auto">
+                <h3 className="font-bold text-gray-800 mb-3">Your Chat History</h3>
+                <div className="space-y-3">
+                  {conversation.map((message, idx) => (
+                    <div key={idx} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-full rounded-lg p-3 ${
+                        message.role === 'user' 
+                          ? 'bg-blue-600 text-white' 
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        <div className="text-xs font-semibold mb-1 opacity-75">
+                          {message.role === 'user' ? 'You' : 'LLM'}
+                        </div>
+                        <div className="text-sm whitespace-pre-wrap">{message.content}</div>
+                      </div>
+                    </div>
+                  ))}
+                  <div ref={reflectionChatEndRef} />
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
+          {showToast && (
+            <div className="fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-pulse">
+              🎉 You've completed 3 strategies! You can proceed to reflection or continue exploring.
+            </div>
+          )}
+
+          <div className="bg-white border-b border-gray-200 p-3 flex-shrink-0">
+            <div className="max-w-7xl mx-auto flex items-center justify-between">
+              <div>
+                <h1 className="text-lg font-bold text-gray-800">Exploring Sleep Deprivation & Memory</h1>
+                <p className="text-xs text-gray-600">
+                  {phase === 'initial' 
+                    ? `Try 3 different prompts to learn about this topic on your own. (${initialPromptCount}/3 sent)`
+                    : 'Use strategies below by copying templates into your prompt. Try any 3 strategies.'}
+                </p>
+              </div>
+              {canProceedToReflection() && phase === 'exploration' && (
+                <button
+                  onClick={() => setPhase('reflection')}
+                  className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded inline-flex items-center gap-2 transition-colors text-sm"
+                >
+                  Proceed to Reflection <ArrowRight size={16} />
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="flex-1 flex flex-col max-w-7xl mx-auto w-full p-4 min-h-0">
+            <div className="bg-white rounded-lg shadow-md mb-3 p-4 overflow-y-auto" style={{ height: '300px' }}>
+              {conversation.length === 0 ? (
+                <div className="text-center text-gray-400 mt-8">
+                  <p className="text-sm italic">Placeholder for chat response (with scrolling)</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {conversation.map((message, idx) => (
+                    <div key={idx} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-3xl rounded-lg p-3 ${
+                        message.role === 'user' 
+                          ? 'bg-blue-600 text-white' 
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        <div className="text-xs font-semibold mb-1 opacity-75">
+                          {message.role === 'user' ? 'You' : 'LLM'}
+                        </div>
+                        <div className="text-sm whitespace-pre-wrap">{message.content}</div>
+                      </div>
+                    </div>
+                  ))}
+                  <div ref={chatEndRef} />
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white rounded-lg shadow-md p-3 flex-shrink-0 mb-3">
+              <div className="flex gap-2">
+                <textarea
+                  ref={promptInputRef}
+                  value={promptText}
+                  onChange={(e) => setPromptText(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder={phase === 'initial' ? 'Ask your initial question here...' : 'Type your prompt here...'}
+                  rows="2"
+                  className="flex-1 p-2 border border-gray-300 rounded text-sm resize-none"
+                />
+                <button
+                  onClick={handleSendMessage}
+                  disabled={!promptText.trim()}
+                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 rounded flex items-center gap-2 transition-colors"
+                >
+                  <Send size={18} />
+                </button>
+              </div>
+            </div>
+
+            {phase === 'exploration' && (
+              <div className="bg-white rounded-lg shadow-md p-4 pb-14 flex-shrink-0 relative">
+                <div className="grid grid-cols-3 gap-4 mb-8">
+                  <div className="flex gap-3">
+                    <div className="flex items-center">
+                      <div style={{ writingMode: 'vertical-rl' }} className="text-xs font-bold text-gray-600 tracking-wider">
+                        FORMATTING
+                      </div>
+                    </div>
+                    <div className="flex-1 space-y-3">
+                      {tasks.formatting.map(task => (
+                        <TaskItem 
+                          key={task.id} 
+                          task={task} 
+                          count={taskCompletions[task.id]}
+                          celebrating={celebratingTask === task.id}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <div className="flex items-center">
+                      <div style={{ writingMode: 'vertical-rl' }} className="text-xs font-bold text-gray-600 tracking-wider">
+                        SCOPE
+                      </div>
+                    </div>
+                    <div className="flex-1 space-y-3">
+                      {tasks.scope.map(task => (
+                        <TaskItem 
+                          key={task.id} 
+                          task={task} 
+                          count={taskCompletions[task.id]}
+                          celebrating={celebratingTask === task.id}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <div className="flex items-center">
+                      <div style={{ writingMode: 'vertical-rl' }} className="text-xs font-bold text-gray-600 tracking-wider">
+                        CONCEPTUAL
+                      </div>
+                    </div>
+                    <div className="flex-1 space-y-3">
+                      {tasks.conceptual.map(task => (
+                        <TaskItem 
+                          key={task.id} 
+                          task={task} 
+                          count={taskCompletions[task.id]}
+                          celebrating={celebratingTask === task.id}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="absolute bottom-3 right-3 bg-gray-100 px-3 py-1.5 rounded text-xs font-semibold text-gray-700 shadow-sm border border-gray-200">
+                  {getUniqueCompletions()}/3 strategies completed
+                </div>
+
+                {unmatchedPrompts.length > 0 && (
+                  <details className="mt-3 text-xs text-gray-500">
+                    <summary className="cursor-pointer hover:text-gray-700">
+                      Debug: {unmatchedPrompts.length} prompts without template match
+                    </summary>
+                    <ul className="mt-2 ml-4 list-disc">
+                      {unmatchedPrompts.map((prompt, idx) => (
+                        <li key={idx} className="mb-1">"{prompt}"</li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    ReactDOM.render(<LLMTaskExplorer />, document.getElementById('root'));
+  </script>
+</body>
+</html>
