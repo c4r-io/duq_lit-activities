@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boolean Search Strategy Builder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 100%;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 3px;
+            font-size: 2em;
+        }
+
+        .game-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .terms-pool {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 15px;
+            border: 2px dashed #dee2e6;
+            transition: all 0.3s;
+        }
+
+        .terms-pool.drag-over {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+
+        .terms-pool h3 {
+            color: #495057;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .progress-section {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #fff;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .progress-bar-container {
+            flex: 1;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: #4caf50;
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .progress-label {
+            font-size: 0.9em;
+            color: #666;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .progress-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .progress-buttons button {
+            padding: 6px 16px;
+            font-size: 0.9em;
+        }
+
+        .term-item {
+            background: white;
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 8px;
+            cursor: grab;
+            user-select: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .term-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 5px 0;
+        }
+
+        .term-wrapper.draggable {
+            cursor: grab;
+        }
+
+        .term-wrapper.draggable:active {
+            cursor: grabbing;
+        }
+
+        .term-wrapper.dragging .term-item {
+            opacity: 0.5;
+        }
+
+        .term-wrapper .term-item {
+            margin: 0;
+            flex: 1;
+            cursor: inherit;
+        }
+
+        .term-item.immovable-term {
+            cursor: default;
+            opacity: 0.9;
+            background: #f5f5f5;
+        }
+
+        .term-item.immovable-term::before {
+            content: '🔒';
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.9em;
+        }
+
+        .term-item.immovable-term:hover {
+            transform: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .term-wrapper.immovable-term {
+            cursor: default;
+        }
+
+        .term-wrapper.immovable-term .term-item {
+            cursor: default;
+            opacity: 0.9;
+            background: #f5f5f5;
+        }
+
+        .term-wrapper.immovable-term .term-item:hover {
+            transform: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .term-item-solo {
+            margin: 5px 0;
+        }
+
+        .term-item::before {
+            content: '⋮⋮';
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            font-size: 1em;
+            letter-spacing: -2px;
+        }
+
+        .term-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .term-item:active {
+            cursor: grabbing;
+        }
+
+        .term-item.dragging {
+            opacity: 0.5;
+        }
+
+        .mesh-verify-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            background: #e3f2fd;
+            color: #1565c0;
+            text-decoration: none;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: 600;
+            transition: all 0.2s;
+            border: 1px solid #90caf9;
+            font-family: 'Segoe UI', sans-serif;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .mesh-verify-link:hover {
+            background: #1565c0;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .mesh-verify-link:active {
+            transform: translateY(0);
+        }
+
+        .mesh-icon {
+            font-size: 0.9em;
+        }
+
+        .categories {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .category {
+            background: white;
+            padding: 10px;
+            border-radius: 15px;
+            min-height: 90px;
+            border: 3px solid;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .category-content:empty::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #999;
+            font-style: italic;
+            font-size: 0.9em;
+            pointer-events: none;
+        }
+
+        .category.drag-over {
+            background: #f8f9fa;
+            transform: scale(1.02);
+        }
+
+        .category-or {
+            border-color: #4caf50;
+        }
+
+        .category-and {
+            border-color: #2196f3;
+            border-style: dashed;
+            opacity: 0.7;
+        }
+
+        .and-separator {
+            text-align: center;
+            padding: 6px 0;
+            margin: 4px 0;
+        }
+
+        .and-separator.dashed .and-separator-text {
+            border-style: dashed;
+            opacity: 0.7;
+        }
+
+        .and-separator-text {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95em;
+            border: 2px solid #2196f3;
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid;
+        }
+
+        .category-or-header {
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #4caf50;
+        }
+
+        .category-or-header h3 {
+            margin: 0;
+        }
+
+        .category-title {
+            flex: 1;
+        }
+
+        .category-title h3 {
+            color: #333;
+            margin-bottom: 2px;
+        }
+
+        .category-title p {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .category-title h3 .boolean-op {
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .category-or .boolean-op {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .category-and .boolean-op {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .delete-bin-button {
+            background: #f44336;
+            color: white;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            line-height: 1;
+            padding: 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .delete-bin-button:hover {
+            background: #d32f2f;
+            transform: scale(1.15);
+        }
+
+        .category.dynamic-and-bin {
+            position: relative;
+        }
+
+        .category-content {
+            min-height: 60px;
+        }
+
+        .category .term-item {
+            border: 2px solid;
+        }
+
+        .category-or .term-item {
+            border-color: #4caf50;
+            background: #f1f8f4;
+        }
+
+        .category-and .term-item {
+            border-color: #2196f3;
+            background: #e3f2fd;
+        }
+
+        .category-not .term-item {
+            border-color: #f44336;
+            background: #ffebee;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-check {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-check:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-reset {
+            background: #ff9800;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #fb8c00;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-pubmed {
+            background: #0071bc;
+            color: white;
+        }
+
+        .btn-pubmed:hover {
+            background: #005a94;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-pubmed:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-pubmed:disabled:hover {
+            background: #ccc;
+            transform: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .feedback {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1em;
+            display: none;
+        }
+
+        .feedback.success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .feedback.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .feedback.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .search-preview {
+            background: #fff;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 3px solid #333;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .search-preview h3 {
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .search-query {
+            background: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            color: #333;
+            line-height: 1.5;
+            font-size: 0.9em;
+            min-height: 45px;
+            border: 2px solid #e0e0e0;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .search-query .boolean-or {
+            font-weight: bold;
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .search-query .boolean-and {
+            font-weight: bold;
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .search-query .paren {
+            font-weight: bold;
+            color: #666;
+        }
+
+        .copy-button {
+            background: #757575;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .copy-button:hover {
+            background: #616161;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .copy-button:active {
+            transform: scale(0.95);
+        }
+
+        .copy-button.copied {
+            background: #4caf50;
+            color: white;
+        }
+
+        .copy-icon {
+            width: 14px;
+            height: 14px;
+            display: inline-block;
+        }
+
+        .unused-terms-section {
+            background: #fff3e0;
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px dashed #ff9800;
+        }
+
+        .unused-terms-section h3 {
+            color: #000;
+            font-size: 1em;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .unused-terms-area {
+            background: #fff;
+            border: 2px dashed #ffb74d;
+            border-radius: 8px;
+            min-height: 80px;
+            padding: 8px;
+            transition: all 0.3s;
+        }
+
+        .unused-terms-area.drag-over {
+            background: #ffe0b2;
+            border-color: #ff9800;
+            transform: scale(1.01);
+        }
+
+        .unused-terms-area .term-item {
+            opacity: 0.7;
+        }
+
+        .unused-terms-area .term-wrapper {
+            opacity: 0.7;
+        }
+
+        .results-section {
+            background: #fff;
+            border: 3px solid #0071bc;
+            border-radius: 10px;
+            margin-top: 15px;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .results-header {
+            background: #0071bc;
+            color: white;
+            padding: 12px 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+
+        .results-header:hover {
+            background: #005a94;
+        }
+
+        .results-count {
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        .expand-icon {
+            font-size: 1.2em;
+            transition: transform 0.3s;
+        }
+
+        .expand-icon.expanded {
+            transform: rotate(180deg);
+        }
+
+        .results-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            padding: 0 15px;
+        }
+
+        .results-content.expanded {
+            max-height: 500px;
+            padding: 15px;
+        }
+
+        .result-item {
+            padding: 12px;
+            margin-bottom: 10px;
+            border-left: 4px solid #0071bc;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .result-title {
+            font-weight: 600;
+            color: #0071bc;
+            margin-bottom: 5px;
+        }
+
+        .result-authors {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 3px;
+        }
+
+        .result-journal {
+            color: #888;
+            font-size: 0.85em;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .game-area {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Build a PubMed Search Strategy</h1>
+
+        <div style="text-align: center; margin-bottom: 12px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
+            <p style="color: #495057; font-size: 1.1em; margin: 0; line-height: 1.6;">
+                <strong>"How does <strong>neuroplasticity</strong> contribute to <strong>memory formation</strong>?"</strong>
+            </p>
+            <p style="color: #495057; font-size: 1em; margin: 8px 0 0 0;">
+                Drag and drop the terms below to build an effective search strategy for this question.
+            </p>
+        </div>
+
+        <div class="progress-section">
+            <div class="progress-buttons">
+                <button class="btn-reset" onclick="resetGame()">Reset Terms</button>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progressBar"></div>
+            </div>
+            <span class="progress-label" id="progressLabel">0 of 9 terms placed</span>
+            <div class="progress-buttons">
+                <button class="btn-check" onclick="checkAnswers()">Check Term Placement</button>
+            </div>
+        </div>
+
+        <div class="game-area" style="position: relative;">
+            <div>
+                <div class="terms-pool">
+                    <h3>
+                        <span>Available Terms</span>
+                    </h3>
+                    <div id="termsPool">
+                        <!-- Terms will be added here by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="unused-terms-section">
+                    <h3>Unneeded Terms</h3>
+                    <div class="unused-terms-area" id="unusedTerms">
+                        <!-- Unused terms will be dragged here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="categories">
+                <div class="categories">
+                <div id="conceptBins">
+                    <!-- Initial concept bins will be created here by JavaScript -->
+                </div>
+
+                <div id="dynamicAndCategories">
+                    <!-- Dynamic AND categories will be added here -->
+                </div>
+
+                <div class="and-separator dashed">
+                    <span class="and-separator-text">AND</span>
+                </div>
+
+                <div class="category category-and" data-category="and">
+                    <div style="padding: 15px; text-align: center; color: #999; font-size: 0.95em; font-style: italic;">
+                        Drop a term here to start a new concept
+                    </div>
+                    <div class="category-content" id="andCategory"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="feedback" id="feedback"></div>
+
+        <div class="search-preview" id="searchPreview">
+            <h3>
+                <span>Your Search Query</span>
+            </h3>
+            <div class="search-query" id="searchQuery">
+                <div style="margin-bottom: 8px;">
+                    <span class="paren">(</span>"neuroplasticity"[Title/Abstract]<span class="paren">)</span>
+                </div>
+                <div style="margin-bottom: 8px;">
+                    <span class="boolean-and">AND</span> 
+                    <span class="paren">(</span>"memory formation"[Title/Abstract]<span class="paren">)</span>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 12px;">
+                <button class="copy-button" onclick="copySearchQuery(event)" style="padding: 10px 20px; font-size: 1em;">
+                    <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    <span class="copy-text">Copy Query</span>
+                </button>
+                <button class="btn-pubmed" onclick="searchPubMed()" id="pubmedButton">Search PubMed</button>
+            </div>
+        </div>
+
+        <div class="results-section" id="resultsSection" style="display: none;">
+            <div class="results-header" onclick="toggleResults()">
+                <span class="results-count" id="resultsCount">Results: 0</span>
+                <span class="expand-icon" id="expandIcon">▼</span>
+            </div>
+            <div class="results-content" id="resultsContent">
+                <!-- Results will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const terms = [
+            { text: '"brain plasticity"[Title/Abstract]', category: "or-neuro", explanation: "Alternative term for neuroplasticity" },
+            { text: '"neural plasticity"[Title/Abstract]', category: "or-neuro", explanation: "Another term for neuroplasticity" },
+            { text: '"Neuronal Plasticity"[MeSH]', category: "or-neuro", explanation: "MeSH term for neuroplasticity" },
+            { text: '"Memory Consolidation"[MeSH]', category: "or-memory", explanation: "MeSH term for memory consolidation process" },
+            { text: '"memory encoding"[Title/Abstract]', category: "or-memory", explanation: "Process of transforming information into memory" },
+            { text: '"Learning"[MeSH]', category: "and", explanation: "Essential co-concept with neuroplasticity and memory" },
+            { text: '"skill acquisition"[Title/Abstract]', category: "and-learning", explanation: "Synonym for learning" },
+            { text: '"Hippocampus"[MeSH]', category: "and", explanation: "Key brain structure in memory formation" },
+            { text: '"hippocampal formation"[Title/Abstract]', category: "and-hippocampus", explanation: "Anatomical term for hippocampus region" }
+        ];
+
+        const initialConcepts = [
+            { 
+                id: 'orNeuroCategory',
+                mainTerm: '"neuroplasticity"[Title/Abstract]',
+                label: 'neuroplasticity',
+                deletable: false
+            },
+            { 
+                id: 'orMemoryCategory',
+                mainTerm: '"memory formation"[Title/Abstract]',
+                label: 'memory formation',
+                deletable: false
+            }
+        ];
+
+        let draggedElement = null;
+        let dynamicAndBins = {};
+
+        function createImmovableTerm(text) {
+            const isMeshTerm = text.includes('[MeSH]');
+            
+            if (isMeshTerm) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'term-wrapper immovable-term';
+                wrapper.draggable = false;
+                
+                const termDiv = document.createElement('div');
+                termDiv.className = 'term-item';
+                termDiv.textContent = text;
+                termDiv.dataset.term = text;
+                termDiv.dataset.correctCategory = 'immovable';
+                
+                const meshTermName = text.match(/"([^"]+)"/)[1];
+                
+                const verifyLink = document.createElement('a');
+                verifyLink.href = 'https://meshb.nlm.nih.gov/search?searchMethod=FullWord&searchInField=allTerms&size=20&searchType=anyWord&q=' + encodeURIComponent(meshTermName);
+                verifyLink.target = '_blank';
+                verifyLink.rel = 'noopener noreferrer';
+                verifyLink.className = 'mesh-verify-link';
+                verifyLink.innerHTML = '<span class="mesh-icon">🔍</span><span>Lookup MeSH</span>';
+                
+                verifyLink.addEventListener('mousedown', function(e) {
+                    e.stopPropagation();
+                });
+                
+                wrapper.appendChild(termDiv);
+                wrapper.appendChild(verifyLink);
+                
+                return wrapper;
+            } else {
+                const termDiv = document.createElement('div');
+                termDiv.className = 'term-item immovable-term';
+                termDiv.textContent = text;
+                termDiv.draggable = false;
+                termDiv.dataset.term = text;
+                termDiv.dataset.correctCategory = 'immovable';
+                return termDiv;
+            }
+        }
+
+        function createConceptBin(binId, mainTerm, label, deletable) {
+            const bin = document.createElement('div');
+            bin.className = 'category category-or';
+            bin.dataset.category = deletable ? 'and-dynamic' : 'or-' + label.split(' ')[0];
+            if (deletable) {
+                bin.classList.add('dynamic-and-bin');
+                bin.dataset.mainTerm = mainTerm;
+            }
+            
+            const deleteButton = deletable ? '<button class="delete-bin-button" onclick="deleteConceptBin(\'' + binId + '\')">×</button>' : '';
+            
+            bin.innerHTML = deleteButton + 
+                '<div class="category-or-header">' +
+                    '<h3><span class="boolean-op">OR</span> synonyms for ' + label + '</h3>' +
+                '</div>' +
+                '<div class="category-or-dropzone category-content" id="' + binId + '"></div>';
+            
+            const dropzone = bin.querySelector('.category-or-dropzone');
+            const mainTermElement = createImmovableTerm(mainTerm);
+            dropzone.appendChild(mainTermElement);
+            
+            dropzone.addEventListener('dragover', handleDragOver);
+            dropzone.addEventListener('dragenter', handleDragEnter);
+            dropzone.addEventListener('dragleave', handleDragLeave);
+            dropzone.addEventListener('drop', handleDrop);
+            
+            return bin;
+        }
+
+        function initializeGame() {
+            const pool = document.getElementById('termsPool');
+            const conceptBins = document.getElementById('conceptBins');
+            
+            pool.innerHTML = '';
+            conceptBins.innerHTML = '';
+            
+            initialConcepts.forEach(function(concept, index) {
+                const bin = createConceptBin(concept.id, concept.mainTerm, concept.label, concept.deletable);
+                conceptBins.appendChild(bin);
+                
+                if (index < initialConcepts.length - 1) {
+                    const separator = document.createElement('div');
+                    separator.className = 'and-separator';
+                    separator.innerHTML = '<span class="and-separator-text">AND</span>';
+                    conceptBins.appendChild(separator);
+                }
+            });
+            
+            const shuffled = terms.slice().sort(function() { return Math.random() - 0.5; });
+            console.log('Creating', shuffled.length, 'terms');
+            shuffled.forEach(function(term) {
+                const element = createTermElement(term);
+                console.log('Created term element:', element);
+                pool.appendChild(element);
+            });
+            
+            console.log('Total wrappers in pool after init:', pool.querySelectorAll('.term-wrapper').length);
+            console.log('Draggable wrappers in pool after init:', pool.querySelectorAll('.term-wrapper.draggable').length);
+            
+            updateTermsCounter();
+        }
+
+        function createTermElement(term) {
+            const isMeshTerm = term.text.includes('[MeSH]');
+            
+            if (isMeshTerm) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'term-wrapper draggable';
+                wrapper.draggable = true;
+                wrapper.dataset.term = term.text;
+                wrapper.dataset.correctCategory = term.category;
+                
+                const termDiv = document.createElement('div');
+                termDiv.className = 'term-item';
+                termDiv.textContent = term.text;
+                termDiv.dataset.term = term.text;
+                termDiv.dataset.correctCategory = term.category;
+                
+                const meshTermName = term.text.match(/"([^"]+)"/)[1];
+                
+                const verifyLink = document.createElement('a');
+                verifyLink.href = 'https://meshb.nlm.nih.gov/search?searchMethod=FullWord&searchInField=allTerms&size=20&searchType=anyWord&q=' + encodeURIComponent(meshTermName);
+                verifyLink.target = '_blank';
+                verifyLink.rel = 'noopener noreferrer';
+                verifyLink.className = 'mesh-verify-link';
+                verifyLink.innerHTML = '<span class="mesh-icon">🔍</span><span>Lookup MeSH</span>';
+                
+                verifyLink.addEventListener('mousedown', function(e) {
+                    e.stopPropagation();
+                });
+                
+                wrapper.appendChild(termDiv);
+                wrapper.appendChild(verifyLink);
+                
+                wrapper.addEventListener('dragstart', handleDragStart);
+                wrapper.addEventListener('dragend', handleDragEnd);
+                
+                return wrapper;
+            } else {
+                const termDiv = document.createElement('div');
+                termDiv.className = 'term-item term-item-solo';
+                termDiv.draggable = true;
+                termDiv.textContent = term.text;
+                termDiv.dataset.term = term.text;
+                termDiv.dataset.correctCategory = term.category;
+                
+                termDiv.addEventListener('dragstart', handleDragStart);
+                termDiv.addEventListener('dragend', handleDragEnd);
+                
+                return termDiv;
+            }
+        }
+
+        function handleDragStart(e) {
+            draggedElement = e.target;
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            
+            const termText = e.target.dataset.term;
+            e.dataTransfer.setData('text/plain', termText);
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+
+        function handleDragEnter(e) {
+            if (e.target.classList.contains('category') || e.target.classList.contains('category-content')) {
+                const category = e.target.classList.contains('category') ? e.target : e.target.closest('.category');
+                category.classList.add('drag-over');
+            } else if (e.target.classList.contains('unused-terms-area') || e.target.closest('.unused-terms-area')) {
+                const unusedArea = e.target.classList.contains('unused-terms-area') ? e.target : e.target.closest('.unused-terms-area');
+                unusedArea.classList.add('drag-over');
+            } else if (e.target.classList.contains('terms-pool') || e.target.closest('.terms-pool')) {
+                const pool = e.target.classList.contains('terms-pool') ? e.target : e.target.closest('.terms-pool');
+                pool.classList.add('drag-over');
+            }
+        }
+
+        function handleDragLeave(e) {
+            if (e.target.classList.contains('category') || e.target.classList.contains('category-content')) {
+                const category = e.target.classList.contains('category') ? e.target : e.target.closest('.category');
+                category.classList.remove('drag-over');
+            } else if (e.target.classList.contains('unused-terms-area') || e.target.closest('.unused-terms-area')) {
+                const unusedArea = e.target.classList.contains('unused-terms-area') ? e.target : e.target.closest('.unused-terms-area');
+                unusedArea.classList.remove('drag-over');
+            } else if (e.target.classList.contains('terms-pool') || e.target.closest('.terms-pool')) {
+                const pool = e.target.classList.contains('terms-pool') ? e.target : e.target.closest('.terms-pool');
+                pool.classList.remove('drag-over');
+            }
+        }
+
+        function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+            
+            let targetContainer;
+            let isAndCategory = false;
+            
+            if (e.target.classList.contains('unused-terms-area') || e.target.closest('.unused-terms-area')) {
+                targetContainer = document.getElementById('unusedTerms');
+            }
+            else if (e.target.classList.contains('terms-pool') || e.target.closest('.terms-pool')) {
+                targetContainer = document.getElementById('termsPool');
+            } else {
+                const category = e.target.classList.contains('category') ? e.target : e.target.closest('.category');
+                if (category) {
+                    category.classList.remove('drag-over');
+                    targetContainer = category.querySelector('.category-content');
+                    isAndCategory = category.dataset.category === 'and';
+                }
+            }
+            
+            if (targetContainer && draggedElement) {
+                if (isAndCategory) {
+                    createDynamicAndBin(draggedElement);
+                } else {
+                    targetContainer.appendChild(draggedElement);
+                }
+                
+                updateSearchPreview();
+                updateTermsCounter();
+            }
+            
+            return false;
+        }
+
+        function createDynamicAndBin(termElement) {
+            const termText = termElement.dataset.term;
+            
+            if (dynamicAndBins[termText]) {
+                document.getElementById(dynamicAndBins[termText]).appendChild(termElement);
+                return;
+            }
+            
+            const binId = 'and-' + Date.now();
+            dynamicAndBins[termText] = binId;
+            
+            const newBin = document.createElement('div');
+            newBin.className = 'category category-or dynamic-and-bin';
+            newBin.dataset.category = 'and-dynamic';
+            newBin.dataset.mainTerm = termText;
+            
+            const cleanLabel = termText.replace(/\[.*?\]/g, '').replace(/"/g, '');
+            
+            newBin.innerHTML = '<button class="delete-bin-button" onclick="deleteDynamicBin(\'' + binId + '\')">×</button>' +
+                '<div class="category-or-header">' +
+                    '<h3><span class="boolean-op">OR</span> synonyms for ' + cleanLabel + '</h3>' +
+                '</div>' +
+                '<div class="category-or-dropzone category-content" id="' + binId + '"></div>';
+            
+            const dynamicContainer = document.getElementById('dynamicAndCategories');
+            
+            const separator = document.createElement('div');
+            separator.className = 'and-separator dynamic-separator';
+            separator.innerHTML = '<span class="and-separator-text">AND</span>';
+            dynamicContainer.appendChild(separator);
+            
+            dynamicContainer.appendChild(newBin);
+            
+            document.getElementById(binId).appendChild(termElement);
+            
+            const dropzone = newBin.querySelector('.category-or-dropzone');
+            dropzone.addEventListener('dragover', handleDragOver);
+            dropzone.addEventListener('dragenter', handleDragEnter);
+            dropzone.addEventListener('dragleave', handleDragLeave);
+            dropzone.addEventListener('drop', handleDrop);
+        }
+
+        function deleteDynamicBin(binId) {
+            console.log('Deleting dynamic bin:', binId);
+            const bin = document.getElementById(binId);
+            const binContainer = bin.closest('.category');
+            const termText = binContainer.dataset.mainTerm;
+            
+            // Get all wrappers (all terms now use wrapper structure)
+            const allWrappers = bin.querySelectorAll('.term-wrapper');
+            const pool = document.getElementById('termsPool');
+            
+            console.log('Found', allWrappers.length, 'wrappers in bin');
+            
+            allWrappers.forEach(function(wrapper) {
+                console.log('Wrapper class:', wrapper.className, 'draggable:', wrapper.classList.contains('draggable'));
+                // Only move draggable wrappers back to pool (skip immovable ones)
+                if (wrapper.classList.contains('draggable')) {
+                    console.log('Moving wrapper back to pool:', wrapper.dataset.term);
+                    pool.appendChild(wrapper);
+                }
+            });
+            
+            const prevElement = binContainer.previousElementSibling;
+            if (prevElement && prevElement.classList.contains('and-separator')) {
+                prevElement.remove();
+            }
+            
+            binContainer.remove();
+            
+            delete dynamicAndBins[termText];
+            
+            updateSearchPreview();
+            updateTermsCounter();
+        }
+
+        function updateSearchPreview() {
+            const neuroDropzone = document.getElementById('orNeuroCategory');
+            const memoryDropzone = document.getElementById('orMemoryCategory');
+            
+            let orNeuroTerms = [];
+            let orMemoryTerms = [];
+            
+            if (neuroDropzone) {
+                const neuroItems = neuroDropzone.querySelectorAll('.term-item');
+                console.log('Neuro items found:', neuroItems.length);
+                orNeuroTerms = Array.from(neuroItems)
+                    .map(function(t) { 
+                        const term = t.dataset.term;
+                        console.log('Neuro term:', term);
+                        return term;
+                    })
+                    .filter(function(t) { return t !== null && t !== undefined && t !== ''; });
+                console.log('Neuro terms collected:', orNeuroTerms);
+            }
+            
+            if (memoryDropzone) {
+                const memoryItems = memoryDropzone.querySelectorAll('.term-item');
+                console.log('Memory items found:', memoryItems.length);
+                orMemoryTerms = Array.from(memoryItems)
+                    .map(function(t) { 
+                        const term = t.dataset.term;
+                        console.log('Memory term:', term);
+                        return term;
+                    })
+                    .filter(function(t) { return t !== null && t !== undefined && t !== ''; });
+                console.log('Memory terms collected:', orMemoryTerms);
+            }
+
+            const dynamicBins = document.querySelectorAll('[data-category="and-dynamic"]');
+            
+            let query = '';
+            
+            query += '<div style="margin-bottom: 8px;">';
+            query += '<span class="paren">(</span>';
+            if (orNeuroTerms.length > 0) {
+                for (let i = 0; i < orNeuroTerms.length; i++) {
+                    if (i > 0) {
+                        query += ' <span class="boolean-or">OR</span> ';
+                    }
+                    query += orNeuroTerms[i];
+                }
+            } else {
+                query += '"neuroplasticity"[Title/Abstract]';
+            }
+            query += '<span class="paren">)</span>';
+            query += '</div>';
+            
+            query += '<div style="margin-bottom: 8px;">';
+            query += '<span class="boolean-and">AND</span> ';
+            query += '<span class="paren">(</span>';
+            if (orMemoryTerms.length > 0) {
+                for (let i = 0; i < orMemoryTerms.length; i++) {
+                    if (i > 0) {
+                        query += ' <span class="boolean-or">OR</span> ';
+                    }
+                    query += orMemoryTerms[i];
+                }
+            } else {
+                query += '"memory formation"[Title/Abstract]';
+            }
+            query += '<span class="paren">)</span>';
+            query += '</div>';
+
+            dynamicBins.forEach(function(bin) {
+                const allBinTerms = Array.from(bin.querySelectorAll('.term-item'))
+                    .map(function(t) { return t.dataset.term; })
+                    .filter(function(t) { return t !== null && t !== undefined && t !== ''; });
+                
+                if (allBinTerms.length > 0) {
+                    query += '<div style="margin-bottom: 8px;">';
+                    query += '<span class="boolean-and">AND</span> ';
+                    
+                    // Always use parentheses for consistency
+                    query += '<span class="paren">(</span>';
+                    if (allBinTerms.length > 1) {
+                        for (let i = 0; i < allBinTerms.length; i++) {
+                            if (i > 0) {
+                                query += ' <span class="boolean-or">OR</span> ';
+                            }
+                            query += allBinTerms[i];
+                        }
+                    } else {
+                        query += allBinTerms[0];
+                    }
+                    query += '<span class="paren">)</span>';
+                    query += '</div>';
+                }
+            });
+
+            document.getElementById('searchQuery').innerHTML = query;
+        }
+
+        function updateTermsCounter() {
+            const totalTerms = 9;
+            const pool = document.getElementById('termsPool');
+            
+            // Count term-items that have correctCategory (not immovable)
+            const allTermItems = pool.querySelectorAll('.term-item');
+            let poolTerms = 0;
+            
+            allTermItems.forEach(function(item) {
+                const correctCategory = item.dataset.correctCategory;
+                // Only count draggable terms (not immovable)
+                if (correctCategory && correctCategory !== 'immovable') {
+                    poolTerms++;
+                }
+            });
+            
+            console.log('Pool terms count:', poolTerms);
+            
+            const placedTerms = totalTerms - poolTerms;
+            const percentage = (placedTerms / totalTerms) * 100;
+            
+            const label = document.getElementById('progressLabel');
+            label.textContent = placedTerms + ' of ' + totalTerms + ' terms placed';
+            
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = percentage + '%';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.terms-pool, .unused-terms-area').forEach(function(element) {
+                element.addEventListener('dragover', handleDragOver);
+                element.addEventListener('dragenter', handleDragEnter);
+                element.addEventListener('dragleave', handleDragLeave);
+                element.addEventListener('drop', handleDrop);
+            });
+            
+            const andCategory = document.querySelector('[data-category="and"]');
+            if (andCategory) {
+                andCategory.addEventListener('dragover', handleDragOver);
+                andCategory.addEventListener('dragenter', handleDragEnter);
+                andCategory.addEventListener('dragleave', handleDragLeave);
+                andCategory.addEventListener('drop', handleDrop);
+            }
+        });
+
+        function checkAnswers() {
+            const feedback = document.getElementById('feedback');
+            let allCorrect = true;
+            let errors = [];
+
+            const categories = ['or-neuro', 'or-memory'];
+            categories.forEach(function(cat) {
+                const categoryId = cat === 'or-neuro' ? 'orNeuroCategory' : 'orMemoryCategory';
+                const categoryDiv = document.getElementById(categoryId);
+                // All terms now use wrapper structure
+                const termsInCategory = categoryDiv.querySelectorAll('.term-wrapper');
+                
+                termsInCategory.forEach(function(wrapper) {
+                    // Skip immovable terms
+                    if (wrapper.classList.contains('immovable-term')) {
+                        console.log('Skipping immovable term');
+                        return;
+                    }
+                    
+                    const termDiv = wrapper.querySelector('.term-item');
+                    if (!termDiv) return;
+                    
+                    const correctCategory = termDiv.dataset.correctCategory;
+                    
+                    if (!correctCategory) {
+                        console.warn('Term missing correctCategory:', termDiv.dataset.term);
+                        return;
+                    }
+                    
+                    if (correctCategory !== cat) {
+                        allCorrect = false;
+                        const termText = termDiv.dataset.term;
+                        const termData = terms.find(function(t) { return t.text === termText; });
+                        const correctCatName = correctCategory === 'or-neuro' ? '"neuroplasticity" OR ____' :
+                                              correctCategory === 'or-memory' ? '"memory formation" OR ____' :
+                                              correctCategory.indexOf('and') === 0 ? 'AND ____' : 'correct category';
+                        if (termData) {
+                            errors.push(termText + ' should be in ' + correctCatName + ' (' + termData.explanation + ')');
+                        }
+                    }
+                });
+            });
+
+            const dynamicBins = document.querySelectorAll('[data-category="and-dynamic"]');
+            dynamicBins.forEach(function(bin) {
+                const mainTerm = bin.dataset.mainTerm;
+                const termsInBin = bin.querySelectorAll('.term-wrapper');
+                
+                termsInBin.forEach(function(wrapper) {
+                    // Skip immovable terms
+                    if (wrapper.classList.contains('immovable-term')) {
+                        console.log('Skipping immovable term in dynamic bin');
+                        return;
+                    }
+                    
+                    const termDiv = wrapper.querySelector('.term-item');
+                    if (!termDiv) return;
+                    
+                    const correctCategory = termDiv.dataset.correctCategory;
+                    const termText = termDiv.dataset.term;
+                    
+                    if (!correctCategory) {
+                        console.warn('Term in dynamic bin missing correctCategory:', termText);
+                        return;
+                    }
+                    
+                    if (termText === mainTerm) {
+                        return;
+                    }
+                    
+                    const isCorrectBin = 
+                        (mainTerm === '"Learning"[MeSH]' && correctCategory === 'and-learning') ||
+                        (mainTerm === '"Hippocampus"[MeSH]' && correctCategory === 'and-hippocampus');
+                    
+                    if (correctCategory.indexOf('and') !== 0) {
+                        allCorrect = false;
+                        const termData = terms.find(function(t) { return t.text === termText; });
+                        const correctCatName = correctCategory === 'or-neuro' ? '"neuroplasticity" OR ____' :
+                                              correctCategory === 'or-memory' ? '"memory formation" OR ____' : 'AND ____';
+                        if (termData) {
+                            errors.push(termText + ' should be in ' + correctCatName + ' (' + termData.explanation + ')');
+                        }
+                    } else if (!isCorrectBin) {
+                        allCorrect = false;
+                        const termData = terms.find(function(t) { return t.text === termText; });
+                        if (termData) {
+                            errors.push(termText + ' should be grouped with a different AND concept (' + termData.explanation + ')');
+                        }
+                    }
+                });
+            });
+
+            const pool = document.getElementById('termsPool');
+            const poolTermItems = pool.querySelectorAll('.term-item');
+            let poolTermsCount = 0;
+            
+            poolTermItems.forEach(function(item) {
+                const correctCategory = item.dataset.correctCategory;
+                // Only count draggable terms (not immovable)
+                if (correctCategory && correctCategory !== 'immovable') {
+                    poolTermsCount++;
+                }
+            });
+            
+            if (poolTermsCount > 0) {
+                allCorrect = false;
+                feedback.innerHTML = '<strong>Not all terms are categorized</strong><br><br>You still have ' + poolTermsCount + ' term(s) in Available Terms. Drag them to a category or move them to "Unneeded Terms" if they\'re not relevant.';
+                feedback.className = 'feedback error show';
+                return;
+            }
+
+            if (allCorrect) {
+                feedback.textContent = 'Excellent! Your term placement is correct. Your search strategy is well-structured!';
+                feedback.className = 'feedback success show';
+                showSearchPreview();
+            } else {
+                feedback.innerHTML = '<strong>Some terms need adjustment</strong><br><br>' + errors.join('<br>');
+                feedback.className = 'feedback error show';
+            }
+        }
+
+        function showSearchPreview() {
+            updateSearchPreview();
+        }
+
+        function resetGame() {
+            document.querySelectorAll('.category-content').forEach(function(content) {
+                content.innerHTML = '';
+            });
+            
+            document.getElementById('unusedTerms').innerHTML = '';
+            
+            document.getElementById('conceptBins').innerHTML = '';
+            
+            document.querySelectorAll('[data-category="and-dynamic"]').forEach(function(bin) {
+                bin.remove();
+            });
+            
+            document.querySelectorAll('.dynamic-separator').forEach(function(separator) {
+                separator.remove();
+            });
+            
+            dynamicAndBins = {};
+            
+            document.getElementById('feedback').className = 'feedback';
+            document.getElementById('searchQuery').innerHTML = '<div style="margin-bottom: 8px;"><span class="paren">(</span>"neuroplasticity"[Title/Abstract]<span class="paren">)</span></div><div style="margin-bottom: 8px;"><span class="boolean-and">AND</span> <span class="paren">(</span>"memory formation"[Title/Abstract]<span class="paren">)</span></div>';
+            
+            initializeGame();
+        }
+
+        function copySearchQuery(event) {
+            const queryElement = document.getElementById('searchQuery');
+            const plainText = queryElement.innerText;
+            
+            navigator.clipboard.writeText(plainText).then(function() {
+                const button = event.target.closest('.copy-button');
+                const textSpan = button.querySelector('.copy-text');
+                const icon = button.querySelector('.copy-icon');
+                const originalText = textSpan.textContent;
+                
+                icon.innerHTML = '<polyline points="20 6 9 17 4 12"></polyline>';
+                textSpan.textContent = 'Copied!';
+                button.classList.add('copied');
+                
+                setTimeout(function() {
+                    icon.innerHTML = '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>';
+                    textSpan.textContent = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy to clipboard. Please try again.');
+            });
+        }
+
+        function searchPubMed() {
+            const dummyResults = [
+                {
+                    title: "Neuroplasticity mechanisms underlying memory consolidation in the hippocampus",
+                    authors: "Smith J, Johnson M, Williams K",
+                    journal: "Nature Neuroscience. 2024 Jan;15(1):45-58"
+                },
+                {
+                    title: "Synaptic plasticity and long-term memory formation: A comprehensive review",
+                    authors: "Chen L, Rodriguez A, Kim S",
+                    journal: "Journal of Neuroscience. 2023 Dec;43(12):123-145"
+                },
+                {
+                    title: "The role of neural plasticity in learning and memory encoding processes",
+                    authors: "Anderson P, Thompson R, Davis E",
+                    journal: "Trends in Cognitive Sciences. 2023 Nov;27(11):890-905"
+                },
+                {
+                    title: "Hippocampal neuroplasticity and its impact on declarative memory",
+                    authors: "Martinez C, Lee H, Brown T",
+                    journal: "Hippocampus. 2023 Oct;33(10):1023-1040"
+                },
+                {
+                    title: "Molecular mechanisms of memory consolidation: The neuroplasticity perspective",
+                    authors: "Wilson K, Garcia M, Taylor J",
+                    journal: "Neuron. 2023 Sep;111(9):1456-1478"
+                }
+            ];
+
+            let baseResults = 1200;
+            
+            const orNeuroTerms = document.getElementById('orNeuroCategory').querySelectorAll('.term-item').length;
+            const orMemoryTerms = document.getElementById('orMemoryCategory').querySelectorAll('.term-item').length;
+            const totalSynonyms = orNeuroTerms + orMemoryTerms - 2;
+            const synonymMultiplier = 1 + (totalSynonyms * 0.2);
+            
+            const dynamicBins = document.querySelectorAll('[data-category="and-dynamic"]').length;
+            const andDivisor = Math.pow(4, dynamicBins);
+            
+            let totalResults = Math.round((baseResults * synonymMultiplier) / andDivisor);
+            
+            const resultsSection = document.getElementById('resultsSection');
+            resultsSection.style.display = 'block';
+            
+            document.getElementById('resultsCount').textContent = 'Results: ' + totalResults.toLocaleString();
+            
+            const resultsContent = document.getElementById('resultsContent');
+            resultsContent.innerHTML = dummyResults.map(function(result) {
+                return '<div class="result-item">' +
+                    '<div class="result-title">' + result.title + '</div>' +
+                    '<div class="result-authors">' + result.authors + '</div>' +
+                    '<div class="result-journal">' + result.journal + '</div>' +
+                '</div>';
+            }).join('');
+            
+            setTimeout(function() {
+                toggleResults(true);
+            }, 100);
+        }
+
+        function toggleResults(forceExpand) {
+            const content = document.getElementById('resultsContent');
+            const icon = document.getElementById('expandIcon');
+            
+            if (forceExpand || !content.classList.contains('expanded')) {
+                content.classList.add('expanded');
+                icon.classList.add('expanded');
+            } else {
+                content.classList.remove('expanded');
+                icon.classList.remove('expanded');
+            }
+        }
+
+        initializeGame();
+    </script>
+</body>
+</html>
