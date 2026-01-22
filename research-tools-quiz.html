@@ -1,389 +1,373 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2575.7">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Your Knowledge - Research Tools Quiz</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
-<p class="p1">&lt;!DOCTYPE html&gt;</p>
-<p class="p1">&lt;html lang="en"&gt;</p>
-<p class="p1">&lt;head&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta charset="UTF-8"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;title&gt;Check Your Knowledge - Research Tools Quiz&lt;/title&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"&gt;&lt;/script&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"&gt;&lt;/script&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;script src="https://unpkg.com/@babel/standalone/babel.min.js"&gt;&lt;/script&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;</p>
-<p class="p1">&lt;/head&gt;</p>
-<p class="p1">&lt;body&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div id="root"&gt;&lt;/div&gt;</p>
-<p class="p2"><span class="Apple-converted-space">    </span></p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;script type="text/babel"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const { useState } = React;</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>const CheckCircle = ({ className }) =&gt; (</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/svg&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>);</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>const XCircle = ({ className }) =&gt; (</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/svg&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>const ResearchToolsQuiz = () =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const [currentQuestion, setCurrentQuestion] = useState(0);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const [selectedAnswers, setSelectedAnswers] = useState([]);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const [showFeedback, setShowFeedback] = useState(false);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const [score, setScore] = useState(0);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const [showIntro, setShowIntro] = useState(true);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const [showSummary, setShowSummary] = useState(false);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>const groupResults = [18, 22, 15, 19, 21, 14, 23, 16];</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>const questions = [</p>
-<p class="p1"><span class="Apple-converted-space">                </span>{</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>feature: "Peer-reviewed journal articles only",</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>correct: ["Structured Database"],</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>explanation: "Structured databases like PubMed and Web of Science are curated to include only peer-reviewed scientific literature. Search engines return a mix of peer-reviewed and non-peer-reviewed content, while LLMs don't directly access or retrieve articles—they generate responses based on patterns in their training data."</p>
-<p class="p1"><span class="Apple-converted-space">                </span>},</p>
-<p class="p1"><span class="Apple-converted-space">                </span>{</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>feature: "Natural language understanding of complex queries",</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>correct: ["Search Engine", "LLM"],</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>explanation: "Both modern search engines (especially Google Scholar) and LLMs can interpret natural language queries like 'What causes memory consolidation during sleep?' Search engines have improved significantly in understanding intent, while LLMs excel at parsing complex, conversational questions. Traditional databases typically require more structured search syntax with Boolean operators."</p>
-<p class="p1"><span class="Apple-converted-space">                </span>},</p>
-<p class="p1"><span class="Apple-converted-space">                </span>{</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>feature: "Provides real-time access to brand new publications",</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>correct: ["Structured Database", "Search Engine"],</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>explanation: "Databases and search engines are regularly updated with new publications, often within days of online publication. PubMed typically indexes articles within 1-2 days. LLMs have a knowledge cutoff date and don't access real-time information unless they have web search capabilities. Always use databases or search engines for the most current literature."</p>
-<p class="p1"><span class="Apple-converted-space">                </span>},</p>
-<p class="p1"><span class="Apple-converted-space">                </span>{</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>feature: "Includes preprints, theses, and technical reports",</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>correct: ["Search Engine"],</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>explanation: "Search engines like Google Scholar are excellent for finding what's called 'grey literature'—scholarly materials that haven't gone through traditional peer review, including preprints (like those on bioRxiv), doctoral theses, conference proceedings, and technical reports. This can be valuable for finding cutting-edge research or avoiding publication bias. Structured databases like PubMed focus on peer-reviewed published literature, though some specialized databases do include specific types of grey literature. LLMs don't retrieve documents directly, so they can't search for grey literature sources."</p>
-<p class="p1"><span class="Apple-converted-space">                </span>},</p>
-<p class="p1"><span class="Apple-converted-space">                </span>{</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>feature: "Can explain complex neuroscience concepts in simpler terms",</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>correct: ["LLM"],</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>explanation: "LLMs excel at pedagogical tasks like explaining complex concepts at different levels, providing analogies, and adapting explanations to your background. While you might find review articles through databases or search engines, LLMs can provide immediate, customized explanations and answer follow-up questions interactively."</p>
-<p class="p1"><span class="Apple-converted-space">                </span>},</p>
-<p class="p1"><span class="Apple-converted-space">                </span>{</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>feature: "Searches a curated set of references, with available information about what that set does and does not contain",</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>correct: ["Structured Database"],</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>explanation: "Structured databases like PubMed clearly document their scope and inclusion criteria (PubMed primarily indexes peer-reviewed biomedical journals from a defined list). This transparency helps you understand what you're searching and what might be missing. Search engines like Google Scholar index a much broader and less clearly defined set of sources, making it harder to know your search's boundaries. LLMs don't search databases at all—they generate text based on their training data."</p>
-<p class="p1"><span class="Apple-converted-space">                </span>},</p>
-<p class="p1"><span class="Apple-converted-space">                </span>{</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>feature: "Can synthesize and summarize information across topics",</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>correct: ["LLM"],</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>explanation: "This is where LLMs truly shine! They can synthesize information, identify connections between concepts, and provide summaries in accessible language. While you could manually synthesize information from databases or search results, neither tool does this automatically. However, remember that LLM summaries should be verified against primary sources."</p>
-<p class="p1"><span class="Apple-converted-space">                </span>},</p>
-<p class="p1"><span class="Apple-converted-space">                </span>{</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>feature: "Reproducible searches with saved search strategies",</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>correct: ["Structured Database"],</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>explanation: "Databases like PubMed and Web of Science allow you to save complex search strategies, set up alerts, and precisely reproduce searches—essential for systematic reviews and meta-analyses. Search engine results can vary based on personalization and algorithm updates. LLMs generate new responses each time and aren't designed for reproducible literature searches."</p>
-<p class="p1"><span class="Apple-converted-space">                </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>];</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>const tools = ["Structured Database", "Search Engine", "LLM"];</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>const handleAnswerToggle = (answer) =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (selectedAnswers.includes(answer)) {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>setSelectedAnswers(selectedAnswers.filter(a =&gt; a !== answer));</p>
-<p class="p1"><span class="Apple-converted-space">                </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>setSelectedAnswers([...selectedAnswers, answer]);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>};</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>const handleSubmit = () =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const correct = questions[currentQuestion].correct;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const isCorrect =<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">                    </span>selectedAnswers.length === correct.length &amp;&amp;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>selectedAnswers.every(answer =&gt; correct.includes(answer));</p>
-<p class="p2"><span class="Apple-converted-space">                </span></p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (isCorrect) {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>setScore(score + 1);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>}</p>
-<p class="p1"><span class="Apple-converted-space">                </span>setShowFeedback(true);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>};</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>const handleNext = () =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (currentQuestion &lt; questions.length - 1) {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>setCurrentQuestion(currentQuestion + 1);</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>setSelectedAnswers([]);</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>setShowFeedback(false);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>setCurrentQuestion(questions.length);</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>setSelectedAnswers([]);</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>setShowFeedback(false);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>};</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>const handleRestart = () =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>setCurrentQuestion(0);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>setSelectedAnswers([]);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>setShowFeedback(false);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>setScore(0);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>setShowIntro(true);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>setShowSummary(false);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>};</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>const isCorrect = showFeedback &amp;&amp;<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">                </span>selectedAnswers.length === questions[currentQuestion].correct.length &amp;&amp;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>selectedAnswers.every(answer =&gt; questions[currentQuestion].correct.includes(answer));</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (showIntro) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>return (</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div className="max-w-3xl mx-auto p-8 bg-white rounded-lg shadow-lg"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;h1 className="text-3xl font-bold text-gray-800 mb-4"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>Check Your Knowledge</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/h1&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;p className="text-gray-600 mb-6"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>Which is the best research tool for the job?</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/p&gt;</p>
-<p class="p2"><span class="Apple-converted-space">                        </span></p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div className="bg-blue-50 border-l-4 border-blue-600 p-6 mb-6"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p className="text-gray-800 mb-4"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>Try this short quiz about the capabilities of three types of research tools:</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;ul className="space-y-2 text-gray-800 mb-4"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>&lt;li&gt;&lt;strong&gt;Structured Databases&lt;/strong&gt; (e.g., PubMed)&lt;/li&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>&lt;li&gt;&lt;strong&gt;Search Engines&lt;/strong&gt; (e.g., Google Scholar)&lt;/li&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>&lt;li&gt;&lt;strong&gt;LLMs&lt;/strong&gt; (e.g., ChatGPT)&lt;/li&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/ul&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p className="text-gray-800"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>&lt;strong&gt;Key details:&lt;/strong&gt; For this activity, "Search Engine" refers to traditional search tools without AI assistants,<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">                                </span>and "LLM" refers to language models without active web search capabilities, even if they can generate links from their training data.</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;button</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>onClick={() =&gt; setShowIntro(false)}</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>Start Quiz</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (currentQuestion &gt;= questions.length &amp;&amp; !showSummary) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const totalParticipants = 24;</p>
-<p class="p2"><span class="Apple-converted-space">                </span></p>
-<p class="p1"><span class="Apple-converted-space">                </span>return (</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div className="max-w-5xl mx-auto p-8 bg-white rounded-lg shadow-lg"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;h2 className="text-3xl font-bold text-gray-800 mb-4"&gt;Quiz Complete!&lt;/h2&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;p className="text-xl text-gray-700 mb-6"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>You scored {score} out of {questions.length}</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;p className="text-gray-600 mb-8"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>Great work exploring the differences between these research tools! Each has unique strengths:</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>use structured databases for systematic searches, search engines for broad discovery,</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>and LLMs for synthesis and brainstorming. The best research workflow often combines all three!</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/p&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;h3 className="text-2xl font-bold text-gray-800 mb-4"&gt;Group Results&lt;/h3&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;p className="text-gray-600 mb-4"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>Here's how your group performed on each question:</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/p&gt;</p>
-<p class="p2"><span class="Apple-converted-space">                        </span></p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div className="overflow-x-auto mb-8"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;table className="w-full border-collapse"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>&lt;thead&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;tr className="bg-gray-100"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;th className="text-left p-3 border-b-2 border-gray-300 font-semibold"&gt;Feature&lt;/th&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;th className="text-left p-3 border-b-2 border-gray-300 font-semibold"&gt;Correct Answer(s)&lt;/th&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;th className="text-center p-3 border-b-2 border-gray-300 font-semibold"&gt;Got It Right&lt;/th&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;/tr&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/thead&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>&lt;tbody&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                    </span>{questions.map((question, index) =&gt; (</p>
-<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;tr key={index} className="border-b border-gray-200 hover:bg-gray-50"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                            </span>&lt;td className="p-3 text-gray-800"&gt;{question.feature}&lt;/td&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                            </span>&lt;td className="p-3 text-gray-800"&gt;{question.correct.join(", ")}&lt;/td&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                            </span>&lt;td className="text-center p-3"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;div className="font-semibold text-blue-600"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                                    </span>{groupResults[index]} / {totalParticipants}</p>
-<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;div className="text-xs text-gray-500"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                                    </span>({Math.round((groupResults[index] / totalParticipants) * 100)}%)</p>
-<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                            </span>&lt;/td&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;/tr&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                    </span>))}</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/tbody&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/table&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;button</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>onClick={() =&gt; setShowSummary(true)}</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>Continue</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (showSummary) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>return (</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div className="max-w-3xl mx-auto p-8 bg-white rounded-lg shadow-lg text-center"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;h2 className="text-3xl font-bold text-gray-800 mb-6"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>Congratulations, you've completed the activity!</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/h2&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;p className="text-lg text-gray-700 mb-8"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>You tested your knowledge about common types of tools for search and learning.<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">                            </span>Using the best tool for each task is a key element of rigorous research!</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;button</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>onClick={handleRestart}</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>Start Over</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>return (</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div className="max-w-3xl mx-auto p-8 bg-white rounded-lg shadow-lg"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div className="mb-6"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div className="flex justify-between items-center mb-2"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;h1 className="text-2xl font-bold text-gray-800"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>Check Your Knowledge</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/h1&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;span className="text-sm text-gray-500"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>Question {currentQuestion + 1} of {questions.length}</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;p className="text-gray-600 text-sm mb-4"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>Which is the best research tool for the job?</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div className="w-full bg-gray-200 rounded-full h-2"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>className="bg-blue-600 h-2 rounded-full transition-all duration-300"</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>/&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div className="mb-8"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;h2 className="text-xl font-semibold text-gray-800 mb-6"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>Which tool(s) have this feature?</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/h2&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div className="bg-blue-50 border-l-4 border-blue-600 p-6 mb-6"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p className="text-lg font-medium text-gray-800"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>{questions[currentQuestion].feature}</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;p className="text-sm text-gray-600 mb-4"&gt;Select all that apply:&lt;/p&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div className="space-y-3 mb-6"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>{tools.map((tool) =&gt; (</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>&lt;button</p>
-<p class="p1"><span class="Apple-converted-space">                                    </span>key={tool}</p>
-<p class="p1"><span class="Apple-converted-space">                                    </span>onClick={() =&gt; !showFeedback &amp;&amp; handleAnswerToggle(tool)}</p>
-<p class="p1"><span class="Apple-converted-space">                                    </span>disabled={showFeedback}</p>
-<p class="p1"><span class="Apple-converted-space">                                    </span>className={`w-full p-4 text-left rounded-lg border-2 transition-all ${</p>
-<p class="p1"><span class="Apple-converted-space">                                        </span>selectedAnswers.includes(tool)</p>
-<p class="p1"><span class="Apple-converted-space">                                            </span>? 'border-blue-600 bg-blue-50'</p>
-<p class="p1"><span class="Apple-converted-space">                                            </span>: 'border-gray-300 bg-white hover:border-gray-400'</p>
-<p class="p1"><span class="Apple-converted-space">                                    </span>} ${showFeedback ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'}`}</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;div className="flex items-center"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;div className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center ${</p>
-<p class="p1"><span class="Apple-converted-space">                                            </span>selectedAnswers.includes(tool)</p>
-<p class="p1"><span class="Apple-converted-space">                                                </span>? 'border-blue-600 bg-blue-600'</p>
-<p class="p1"><span class="Apple-converted-space">                                                </span>: 'border-gray-400'</p>
-<p class="p1"><span class="Apple-converted-space">                                        </span>}`}&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                            </span>{selectedAnswers.includes(tool) &amp;&amp; (</p>
-<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;/svg&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                            </span>)}</p>
-<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;span className="font-medium text-gray-800"&gt;{tool}&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;span className="ml-2 text-xs text-gray-500"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                            </span>{tool === "Structured Database" &amp;&amp; "(e.g., PubMed)"}</p>
-<p class="p1"><span class="Apple-converted-space">                                            </span>{tool === "Search Engine" &amp;&amp; "(e.g., Google Scholar)"}</p>
-<p class="p1"><span class="Apple-converted-space">                                            </span>{tool === "LLM" &amp;&amp; "(e.g., ChatGPT)"}</p>
-<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>))}</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">                        </span>{!showFeedback &amp;&amp; (</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;button</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>onClick={handleSubmit}</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>disabled={selectedAnswers.length === 0}</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>className={`w-full py-3 rounded-lg font-medium transition-colors ${</p>
-<p class="p1"><span class="Apple-converted-space">                                    </span>selectedAnswers.length === 0</p>
-<p class="p1"><span class="Apple-converted-space">                                        </span>? 'bg-gray-300 text-gray-500 cursor-not-allowed'</p>
-<p class="p1"><span class="Apple-converted-space">                                        </span>: 'bg-blue-600 text-white hover:bg-blue-700'</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>}`}</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>Check Answer</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>)}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">                        </span>{showFeedback &amp;&amp; (</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div className="mt-6"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>&lt;div className={`p-6 rounded-lg border-2 ${</p>
-<p class="p1"><span class="Apple-converted-space">                                    </span>isCorrect</p>
-<p class="p1"><span class="Apple-converted-space">                                        </span>? 'bg-green-50 border-green-500'</p>
-<p class="p1"><span class="Apple-converted-space">                                        </span>: 'bg-yellow-50 border-yellow-500'</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>}`}&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;div className="flex items-start mb-3"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                        </span>{isCorrect ? (</p>
-<p class="p1"><span class="Apple-converted-space">                                            </span>&lt;CheckCircle className="w-6 h-6 text-green-600 mr-2 flex-shrink-0 mt-1" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                        </span>) : (</p>
-<p class="p1"><span class="Apple-converted-space">                                            </span>&lt;XCircle className="w-6 h-6 text-yellow-600 mr-2 flex-shrink-0 mt-1" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                        </span>)}</p>
-<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                            </span>&lt;p className="font-semibold text-gray-800 mb-2"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                                </span>{isCorrect ? "Excellent!" : "Not quite, but great effort!"}</p>
-<p class="p1"><span class="Apple-converted-space">                                            </span>&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                            </span>&lt;p className="text-sm text-gray-700 mb-3"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;strong&gt;Correct answer:&lt;/strong&gt; {questions[currentQuestion].correct.join(" and ")}</p>
-<p class="p1"><span class="Apple-converted-space">                                            </span>&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                            </span>&lt;p className="text-sm text-gray-700"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                                </span>{questions[currentQuestion].explanation}</p>
-<p class="p1"><span class="Apple-converted-space">                                            </span>&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">                                </span>&lt;button</p>
-<p class="p1"><span class="Apple-converted-space">                                    </span>onClick={handleNext}</p>
-<p class="p1"><span class="Apple-converted-space">                                    </span>className="w-full mt-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                                    </span>{currentQuestion &lt; questions.length - 1 ? 'Next Question' : 'See Results'}</p>
-<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>)}</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div className="text-center text-sm text-gray-500"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>Current Score: {score} / {currentQuestion + (showFeedback ? 1 : 0)}</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>};</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>ReactDOM.render(&lt;ResearchToolsQuiz /&gt;, document.getElementById('root'));</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/script&gt;</p>
-<p class="p1">&lt;/body&gt;</p>
-<p class="p1">&lt;/html&gt;</p>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState } = React;
+        
+        const CheckCircle = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        );
+        
+        const XCircle = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        );
+
+        const ResearchToolsQuiz = () => {
+            const [currentQuestion, setCurrentQuestion] = useState(0);
+            const [selectedAnswers, setSelectedAnswers] = useState([]);
+            const [showFeedback, setShowFeedback] = useState(false);
+            const [score, setScore] = useState(0);
+            const [showIntro, setShowIntro] = useState(true);
+            const [showSummary, setShowSummary] = useState(false);
+
+            const groupResults = [18, 22, 15, 19, 21, 14, 23, 16];
+
+            const questions = [
+                {
+                    feature: "Peer-reviewed journal articles only",
+                    correct: ["Structured Database"],
+                    explanation: "Structured databases like PubMed and Web of Science are curated to include only peer-reviewed scientific literature. Search engines return a mix of peer-reviewed and non-peer-reviewed content, while LLMs don't directly access or retrieve articles—they generate responses based on patterns in their training data."
+                },
+                {
+                    feature: "Natural language understanding of complex queries",
+                    correct: ["Search Engine", "LLM"],
+                    explanation: "Both modern search engines (especially Google Scholar) and LLMs can interpret natural language queries like 'What causes memory consolidation during sleep?' Search engines have improved significantly in understanding intent, while LLMs excel at parsing complex, conversational questions. Traditional databases typically require more structured search syntax with Boolean operators."
+                },
+                {
+                    feature: "Provides real-time access to brand new publications",
+                    correct: ["Structured Database", "Search Engine"],
+                    explanation: "Databases and search engines are regularly updated with new publications, often within days of online publication. PubMed typically indexes articles within 1-2 days. LLMs have a knowledge cutoff date and don't access real-time information unless they have web search capabilities. Always use databases or search engines for the most current literature."
+                },
+                {
+                    feature: "Includes preprints, theses, and technical reports",
+                    correct: ["Search Engine"],
+                    explanation: "Search engines like Google Scholar are excellent for finding what's called 'grey literature'—scholarly materials that haven't gone through traditional peer review, including preprints (like those on bioRxiv), doctoral theses, conference proceedings, and technical reports. This can be valuable for finding cutting-edge research or avoiding publication bias. Structured databases like PubMed focus on peer-reviewed published literature, though some specialized databases do include specific types of grey literature. LLMs don't retrieve documents directly, so they can't search for grey literature sources."
+                },
+                {
+                    feature: "Can explain complex neuroscience concepts in simpler terms",
+                    correct: ["LLM"],
+                    explanation: "LLMs excel at pedagogical tasks like explaining complex concepts at different levels, providing analogies, and adapting explanations to your background. While you might find review articles through databases or search engines, LLMs can provide immediate, customized explanations and answer follow-up questions interactively."
+                },
+                {
+                    feature: "Searches a curated set of references, with available information about what that set does and does not contain",
+                    correct: ["Structured Database"],
+                    explanation: "Structured databases like PubMed clearly document their scope and inclusion criteria (PubMed primarily indexes peer-reviewed biomedical journals from a defined list). This transparency helps you understand what you're searching and what might be missing. Search engines like Google Scholar index a much broader and less clearly defined set of sources, making it harder to know your search's boundaries. LLMs don't search databases at all—they generate text based on their training data."
+                },
+                {
+                    feature: "Can synthesize and summarize information across topics",
+                    correct: ["LLM"],
+                    explanation: "This is where LLMs truly shine! They can synthesize information, identify connections between concepts, and provide summaries in accessible language. While you could manually synthesize information from databases or search results, neither tool does this automatically. However, remember that LLM summaries should be verified against primary sources."
+                },
+                {
+                    feature: "Reproducible searches with saved search strategies",
+                    correct: ["Structured Database"],
+                    explanation: "Databases like PubMed and Web of Science allow you to save complex search strategies, set up alerts, and precisely reproduce searches—essential for systematic reviews and meta-analyses. Search engine results can vary based on personalization and algorithm updates. LLMs generate new responses each time and aren't designed for reproducible literature searches."
+                }
+            ];
+
+            const tools = ["Structured Database", "Search Engine", "LLM"];
+
+            const handleAnswerToggle = (answer) => {
+                if (selectedAnswers.includes(answer)) {
+                    setSelectedAnswers(selectedAnswers.filter(a => a !== answer));
+                } else {
+                    setSelectedAnswers([...selectedAnswers, answer]);
+                }
+            };
+
+            const handleSubmit = () => {
+                const correct = questions[currentQuestion].correct;
+                const isCorrect = 
+                    selectedAnswers.length === correct.length &&
+                    selectedAnswers.every(answer => correct.includes(answer));
+                
+                if (isCorrect) {
+                    setScore(score + 1);
+                }
+                setShowFeedback(true);
+            };
+
+            const handleNext = () => {
+                if (currentQuestion < questions.length - 1) {
+                    setCurrentQuestion(currentQuestion + 1);
+                    setSelectedAnswers([]);
+                    setShowFeedback(false);
+                } else {
+                    setCurrentQuestion(questions.length);
+                    setSelectedAnswers([]);
+                    setShowFeedback(false);
+                }
+            };
+
+            const handleRestart = () => {
+                setCurrentQuestion(0);
+                setSelectedAnswers([]);
+                setShowFeedback(false);
+                setScore(0);
+                setShowIntro(true);
+                setShowSummary(false);
+            };
+
+            const isCorrect = showFeedback && 
+                selectedAnswers.length === questions[currentQuestion].correct.length &&
+                selectedAnswers.every(answer => questions[currentQuestion].correct.includes(answer));
+
+            if (showIntro) {
+                return (
+                    <div className="max-w-3xl mx-auto p-8 bg-white rounded-lg shadow-lg">
+                        <h1 className="text-3xl font-bold text-gray-800 mb-4">
+                            Check Your Knowledge
+                        </h1>
+                        <p className="text-gray-600 mb-6">
+                            Which is the best research tool for the job?
+                        </p>
+                        
+                        <div className="bg-blue-50 border-l-4 border-blue-600 p-6 mb-6">
+                            <p className="text-gray-800 mb-4">
+                                Try this short quiz about the capabilities of three types of research tools:
+                            </p>
+                            <ul className="space-y-2 text-gray-800 mb-4">
+                                <li><strong>Structured Databases</strong> (e.g., PubMed)</li>
+                                <li><strong>Search Engines</strong> (e.g., Google Scholar)</li>
+                                <li><strong>LLMs</strong> (e.g., ChatGPT)</li>
+                            </ul>
+                            <p className="text-gray-800">
+                                <strong>Key details:</strong> For this activity, "Search Engine" refers to traditional search tools without AI assistants, 
+                                and "LLM" refers to language models without active web search capabilities, even if they can generate links from their training data.
+                            </p>
+                        </div>
+
+                        <button
+                            onClick={() => setShowIntro(false)}
+                            className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                        >
+                            Start Quiz
+                        </button>
+                    </div>
+                );
+            }
+
+            if (currentQuestion >= questions.length && !showSummary) {
+                const totalParticipants = 24;
+                
+                return (
+                    <div className="max-w-5xl mx-auto p-8 bg-white rounded-lg shadow-lg">
+                        <h2 className="text-3xl font-bold text-gray-800 mb-4">Quiz Complete!</h2>
+                        <p className="text-xl text-gray-700 mb-6">
+                            You scored {score} out of {questions.length}
+                        </p>
+                        <p className="text-gray-600 mb-8">
+                            Great work exploring the differences between these research tools! Each has unique strengths:
+                            use structured databases for systematic searches, search engines for broad discovery,
+                            and LLMs for synthesis and brainstorming. The best research workflow often combines all three!
+                        </p>
+
+                        <h3 className="text-2xl font-bold text-gray-800 mb-4">Group Results</h3>
+                        <p className="text-gray-600 mb-4">
+                            Here's how your group performed on each question:
+                        </p>
+                        
+                        <div className="overflow-x-auto mb-8">
+                            <table className="w-full border-collapse">
+                                <thead>
+                                    <tr className="bg-gray-100">
+                                        <th className="text-left p-3 border-b-2 border-gray-300 font-semibold">Feature</th>
+                                        <th className="text-left p-3 border-b-2 border-gray-300 font-semibold">Correct Answer(s)</th>
+                                        <th className="text-center p-3 border-b-2 border-gray-300 font-semibold">Got It Right</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {questions.map((question, index) => (
+                                        <tr key={index} className="border-b border-gray-200 hover:bg-gray-50">
+                                            <td className="p-3 text-gray-800">{question.feature}</td>
+                                            <td className="p-3 text-gray-800">{question.correct.join(", ")}</td>
+                                            <td className="text-center p-3">
+                                                <div className="font-semibold text-blue-600">
+                                                    {groupResults[index]} / {totalParticipants}
+                                                </div>
+                                                <div className="text-xs text-gray-500">
+                                                    ({Math.round((groupResults[index] / totalParticipants) * 100)}%)
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <button
+                            onClick={() => setShowSummary(true)}
+                            className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                            Continue
+                        </button>
+                    </div>
+                );
+            }
+
+            if (showSummary) {
+                return (
+                    <div className="max-w-3xl mx-auto p-8 bg-white rounded-lg shadow-lg text-center">
+                        <h2 className="text-3xl font-bold text-gray-800 mb-6">
+                            Congratulations, you've completed the activity!
+                        </h2>
+                        <p className="text-lg text-gray-700 mb-8">
+                            You tested your knowledge about common types of tools for search and learning. 
+                            Using the best tool for each task is a key element of rigorous research!
+                        </p>
+                        <button
+                            onClick={handleRestart}
+                            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                            Start Over
+                        </button>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="max-w-3xl mx-auto p-8 bg-white rounded-lg shadow-lg">
+                    <div className="mb-6">
+                        <div className="flex justify-between items-center mb-2">
+                            <h1 className="text-2xl font-bold text-gray-800">
+                                Check Your Knowledge
+                            </h1>
+                            <span className="text-sm text-gray-500">
+                                Question {currentQuestion + 1} of {questions.length}
+                            </span>
+                        </div>
+                        <p className="text-gray-600 text-sm mb-4">
+                            Which is the best research tool for the job?
+                        </p>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="mb-8">
+                        <h2 className="text-xl font-semibold text-gray-800 mb-6">
+                            Which tool(s) have this feature?
+                        </h2>
+                        <div className="bg-blue-50 border-l-4 border-blue-600 p-6 mb-6">
+                            <p className="text-lg font-medium text-gray-800">
+                                {questions[currentQuestion].feature}
+                            </p>
+                        </div>
+
+                        <p className="text-sm text-gray-600 mb-4">Select all that apply:</p>
+
+                        <div className="space-y-3 mb-6">
+                            {tools.map((tool) => (
+                                <button
+                                    key={tool}
+                                    onClick={() => !showFeedback && handleAnswerToggle(tool)}
+                                    disabled={showFeedback}
+                                    className={`w-full p-4 text-left rounded-lg border-2 transition-all ${
+                                        selectedAnswers.includes(tool)
+                                            ? 'border-blue-600 bg-blue-50'
+                                            : 'border-gray-300 bg-white hover:border-gray-400'
+                                    } ${showFeedback ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'}`}
+                                >
+                                    <div className="flex items-center">
+                                        <div className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center ${
+                                            selectedAnswers.includes(tool)
+                                                ? 'border-blue-600 bg-blue-600'
+                                                : 'border-gray-400'
+                                        }`}>
+                                            {selectedAnswers.includes(tool) && (
+                                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                </svg>
+                                            )}
+                                        </div>
+                                        <span className="font-medium text-gray-800">{tool}</span>
+                                        <span className="ml-2 text-xs text-gray-500">
+                                            {tool === "Structured Database" && "(e.g., PubMed)"}
+                                            {tool === "Search Engine" && "(e.g., Google Scholar)"}
+                                            {tool === "LLM" && "(e.g., ChatGPT)"}
+                                        </span>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+
+                        {!showFeedback && (
+                            <button
+                                onClick={handleSubmit}
+                                disabled={selectedAnswers.length === 0}
+                                className={`w-full py-3 rounded-lg font-medium transition-colors ${
+                                    selectedAnswers.length === 0
+                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                                }`}
+                            >
+                                Check Answer
+                            </button>
+                        )}
+
+                        {showFeedback && (
+                            <div className="mt-6">
+                                <div className={`p-6 rounded-lg border-2 ${
+                                    isCorrect
+                                        ? 'bg-green-50 border-green-500'
+                                        : 'bg-yellow-50 border-yellow-500'
+                                }`}>
+                                    <div className="flex items-start mb-3">
+                                        {isCorrect ? (
+                                            <CheckCircle className="w-6 h-6 text-green-600 mr-2 flex-shrink-0 mt-1" />
+                                        ) : (
+                                            <XCircle className="w-6 h-6 text-yellow-600 mr-2 flex-shrink-0 mt-1" />
+                                        )}
+                                        <div>
+                                            <p className="font-semibold text-gray-800 mb-2">
+                                                {isCorrect ? "Excellent!" : "Not quite, but great effort!"}
+                                            </p>
+                                            <p className="text-sm text-gray-700 mb-3">
+                                                <strong>Correct answer:</strong> {questions[currentQuestion].correct.join(" and ")}
+                                            </p>
+                                            <p className="text-sm text-gray-700">
+                                                {questions[currentQuestion].explanation}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={handleNext}
+                                    className="w-full mt-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                                >
+                                    {currentQuestion < questions.length - 1 ? 'Next Question' : 'See Results'}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="text-center text-sm text-gray-500">
+                        Current Score: {score} / {currentQuestion + (showFeedback ? 1 : 0)}
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<ResearchToolsQuiz />, document.getElementById('root'));
+    </script>
 </body>
 </html>
