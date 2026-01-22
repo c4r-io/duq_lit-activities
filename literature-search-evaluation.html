@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Literature Search Evaluation - Material Design</title>
+    
+    <!-- Material Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #f5f5f5;
+            color: rgba(0, 0, 0, 0.87);
+            overflow-y: scroll; /* Always show scrollbar gutter */
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        /* Material Design Cards */
+        .md-card {
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            margin-bottom: 16px;
+            transition: box-shadow 0.3s;
+        }
+        
+        .md-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.08);
+        }
+        
+        .md-card-content {
+            padding: 16px;
+        }
+        
+        /* Material Typography */
+        .md-h4 {
+            font-size: 34px;
+            font-weight: 400;
+            line-height: 1.2;
+            margin-bottom: 16px;
+        }
+        
+        .md-h6 {
+            font-size: 20px;
+            font-weight: 500;
+            line-height: 1.3;
+            margin-bottom: 8px;
+        }
+        
+        .md-subtitle1 {
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.5;
+            color: rgba(0, 0, 0, 0.6);
+            margin-bottom: 12px;
+        }
+        
+        .md-body2 {
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.6;
+        }
+        
+        /* Material Buttons */
+        .md-button {
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .md-button-contained {
+            background-color: #1976d2;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .md-button-contained:hover {
+            background-color: #1565c0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .md-button-outlined {
+            background-color: transparent;
+            color: #1976d2;
+            border: 1px solid rgba(25, 118, 210, 0.5);
+        }
+        
+        .md-button-outlined:hover {
+            background-color: rgba(25, 118, 210, 0.04);
+            border-color: #1976d2;
+        }
+        
+        .md-button-outlined.selected {
+            background-color: #1976d2;
+            color: white;
+            border-color: #1976d2;
+        }
+        
+        /* Purple Review Button */
+        .md-button-review {
+            background-color: #7c4dff;
+            color: white;
+            box-shadow: 0 2px 4px rgba(124, 77, 255, 0.3);
+            animation: pulseGlow 2s ease-in-out infinite;
+        }
+        
+        .md-button-review:hover {
+            background-color: #6a3de8;
+            box-shadow: 0 4px 12px rgba(124, 77, 255, 0.5);
+        }
+        
+        @keyframes pulseGlow {
+            0%, 100% {
+                box-shadow: 0 2px 4px rgba(124, 77, 255, 0.3);
+            }
+            50% {
+                box-shadow: 0 4px 16px rgba(124, 77, 255, 0.6);
+            }
+        }
+        
+        /* Material Tabs */
+        .md-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 0;
+            border-bottom: 2px solid #e0e0e0;
+            background-color: white;
+        }
+        
+        .md-tab {
+            padding: 10px 20px;
+            border: none;
+            background: #f5f5f5;
+            cursor: pointer;
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            color: rgba(0, 0, 0, 0.6);
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            margin-right: 2px;
+            position: relative;
+            top: 2px;
+        }
+        
+        .md-tab:hover {
+            background-color: #eeeeee;
+        }
+        
+        .md-tab.active {
+            color: #1976d2;
+            background-color: white;
+            border-bottom-color: #1976d2;
+        }
+        
+        .md-chip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .md-chip.unevaluated {
+            background-color: #e0e0e0;
+            color: rgba(0, 0, 0, 0.6);
+        }
+        
+        .md-chip.in-progress {
+            background-color: #ff9800;
+            color: white;
+        }
+        
+        .md-chip.evaluated {
+            background-color: #4caf50;
+            color: white;
+        }
+        
+        /* Material TextField */
+        .md-textfield {
+            width: 100%;
+            padding: 12px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            border: 1px solid rgba(0, 0, 0, 0.23);
+            border-radius: 4px;
+            transition: border-color 0.2s;
+            resize: none;
+        }
+        
+        .md-textfield:hover {
+            border-color: rgba(0, 0, 0, 0.87);
+        }
+        
+        .md-textfield:focus {
+            outline: none;
+            border-color: #1976d2;
+            border-width: 2px;
+            padding: 11px;
+        }
+        
+        /* Material Expansion Panel */
+        .md-expansion-panel {
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            border-radius: 4px;
+            margin-bottom: 6px;
+            overflow: hidden;
+        }
+        
+        .md-expansion-header {
+            padding: 12px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+        
+        .md-expansion-header:hover {
+            background-color: rgba(0, 0, 0, 0.04);
+        }
+        
+        .md-expansion-content {
+            display: none;
+            padding: 12px;
+            border-top: 1px solid rgba(0, 0, 0, 0.12);
+            background-color: #fafafa;
+        }
+        
+        .md-expansion-content.expanded {
+            display: block;
+        }
+        
+        /* Evaluation Section */
+        .evaluation-card {
+            background: #fafafa;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+        }
+        
+        .button-row {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        
+        .step-divider {
+            margin: 12px 0;
+            border: none;
+            border-top: 1px solid rgba(0, 0, 0, 0.12);
+        }
+        
+        /* Checkbox Options */
+        .checkbox-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid rgba(25, 118, 210, 0.5);
+            background-color: transparent;
+            color: rgba(0, 0, 0, 0.87);
+            transition: all 0.2s;
+        }
+        
+        .checkbox-option:hover {
+            background-color: rgba(25, 118, 210, 0.04);
+            border-color: #1976d2;
+        }
+        
+        .checkbox-option.selected {
+            background-color: rgba(25, 118, 210, 0.08);
+            border-color: #1976d2;
+        }
+        
+        /* Search Query Box */
+        .search-query-box {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 4px;
+            border-left: 4px solid #1976d2;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            margin: 12px 0;
+        }
+        
+        /* Review Section Headers */
+        .review-section {
+            margin-bottom: 16px;
+        }
+        
+        .review-header {
+            padding: 12px 16px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .review-header.relevant {
+            background-color: #4caf50;
+        }
+        
+        .review-header.maybe {
+            background-color: #ff9800;
+        }
+        
+        .review-header.not-relevant {
+            background-color: #757575;
+        }
+        
+        .review-body {
+            padding: 12px;
+            background: white;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        /* Changes Table */
+        .changes-table {
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+        
+        .changes-table-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: #f5f5f5;
+            border-bottom: 2px solid rgba(0, 0, 0, 0.12);
+        }
+        
+        .changes-table-header-cell {
+            padding: 12px;
+            font-weight: 500;
+            font-size: 14px;
+            border-right: 1px solid rgba(0, 0, 0, 0.12);
+        }
+        
+        .changes-table-header-cell:last-child {
+            border-right: none;
+        }
+        
+        .change-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 80px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+        }
+        
+        .change-row:last-child {
+            border-bottom: none;
+        }
+        
+        .change-cell {
+            border-right: 1px solid rgba(0, 0, 0, 0.12);
+        }
+        
+        .change-cell:last-child {
+            border-right: none;
+        }
+        
+        .change-cell .md-textfield {
+            border: none;
+            border-radius: 0;
+        }
+        
+        .change-cell .md-textfield:focus {
+            background-color: #fafafa;
+            border: none;
+            padding: 12px;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Material Icons */
+        .material-icons {
+            font-size: 20px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="container"></div>
+    
+    <script>
+        const allPapers = [
+            {
+                id: 1,
+                title: "Amygdala-hippocampal interactions in synaptic plasticity and memory formation",
+                authors: "Roesler R, Parent MB, LaLumiere RT, McIntyre CK",
+                journal: "Neurobiol Learn Mem",
+                year: 2021,
+                pmid: "34302951",
+                doi: "10.1016/j.nlm.2021.107490",
+                keywords: "Amygdala; Hippocampus; Memory consolidation; Memory systems; Synaptic plasticity",
+                mesh: "Amygdala / physiology, Animals, Entorhinal Cortex / physiology, Hippocampus / physiology, Humans, Memory Consolidation / physiology, Neural Pathways / physiology, Neuronal Plasticity / physiology",
+                abstract: "Memories of emotionally arousing events tend to endure longer than other memories. This review compiles findings from several decades of research investigating the role of the amygdala in modulating memories of emotional experiences. Episodic memory is a kind of declarative memory that depends upon the hippocampus, and studies suggest that the basolateral complex of the amygdala (BLA) modulates episodic memory consolidation through interactions with the hippocampus. Although many studies in rodents and imaging studies in humans indicate that the amygdala modulates memory consolidation and plasticity processes in the hippocampus, the anatomical pathways through which the amygdala affects hippocampal regions that are important for episodic memories were unresolved until recent optogenetic advances made it possible to visualize and manipulate specific BLA efferent pathways during memory consolidation. Findings indicate that the BLA influences hippocampal-dependent memories, as well as synaptic plasticity, histone modifications, gene expression, and translation of synaptic plasticity associated proteins in the hippocampus. More recent findings from optogenetic studies suggest that the BLA modulates spatial memory via projections to the medial entorhinal cortex, and that the frequency of activity in this pathway is a critical element of this modulation."
+            },
+            {
+                id: 2,
+                title: "Sleep Spindles: Mechanisms and Functions",
+                authors: "Fernandez LMJ, Lüthi A",
+                journal: "Physiol Rev",
+                year: 2020,
+                pmid: "31804897",
+                doi: "10.1152/physrev.00042.2018",
+                keywords: "ion channel; schizophrenia; sleep disorders; sleep regulation; thalamus",
+                mesh: "Animals, Attention, Brain / metabolism, Brain / physiopathology, Brain Waves, Cognition, Humans, Intelligence, Memory, Nervous System Diseases / genetics, Nervous System Diseases / metabolism, Nervous System Diseases / physiopathology, Nervous System Diseases / psychology, Neuronal Plasticity, Periodicity, Sleep Stages, Sleep Wake Disorders / genetics, Sleep Wake Disorders / metabolism, Sleep Wake Disorders / physiopathology, Sleep Wake Disorders / psychology, Time Factors",
+                abstract: "Sleep spindles are burstlike signals in the electroencephalogram (EEG) of the sleeping mammalian brain and electrical surface correlates of neuronal oscillations in thalamus. As one of the most inheritable sleep EEG signatures, sleep spindles probably reflect the strength and malleability of thalamocortical circuits that underlie individual cognitive profiles. We review the characteristics, organization, regulation, and origins of sleep spindles and their implication in non-rapid-eye-movement sleep (NREMS) and its functions, focusing on human and rodent. Spatially, sleep spindle-related neuronal activity appears on scales ranging from small thalamic circuits to functional cortical areas, and generates a cortical state favoring intracortical plasticity while limiting cortical output. Temporally, sleep spindles are discrete events, part of a continuous power band, and elements grouped on an infraslow time scale over which NREMS alternates between continuity and fragility. We synthesize diverse and seemingly unlinked functions of sleep spindles for sleep architecture, sensory processing, synaptic plasticity, memory formation, and cognitive abilities into a unifying sleep spindle concept, according to which sleep spindles 1) generate neural conditions of large-scale functional connectivity and plasticity that outlast their appearance as discrete EEG events, 2) appear preferentially in thalamic circuits engaged in learning and attention-based experience during wakefulness, and 3) enable a selective reactivation and routing of wake-instated neuronal traces between brain areas such as hippocampus and cortex. Their fine spatiotemporal organization reflects NREMS as a physiological state coordinated over brain and body and may indicate, if not anticipate and ultimately differentiate, pathologies in sleep and neurodevelopmental, -degenerative, and -psychiatric conditions."
+            },
+            {
+                id: 3,
+                title: "Interregional synaptic maps among engram cells underlie memory formation",
+                authors: "Choi JH, Sim SE, Kim JI, Choi DI, Oh J, Ye S, Lee J, Kim T, Ko HG, Lim CS, Kaang BK",
+                journal: "Science",
+                year: 2018,
+                pmid: "29700265",
+                doi: "10.1126/science.aas9204",
+                keywords: "CA1; CA3; engram cells; fear conditioning; synaptic plasticity; memory formation",
+                mesh: "Animals, CA1 Region, Hippocampal / cytology, CA1 Region, Hippocampal / physiology, CA3 Region, Hippocampal / cytology, CA3 Region, Hippocampal / physiology, Conditioning, Classical, Fear, Green Fluorescent Proteins / analysis, HEK293 Cells, Humans, Long-Term Potentiation, Male, Memory / physiology, Mice, Inbred C57BL, Neuroimaging / methods, Neuronal Plasticity, Neurons / physiology, Synapses / physiology",
+                abstract: "Memory resides in engram cells distributed across the brain. However, the site-specific substrate within these engram cells remains theoretical, even though it is generally accepted that synaptic plasticity encodes memories. We developed the dual-eGRASP (green fluorescent protein reconstitution across synaptic partners) technique to examine synapses between engram cells to identify the specific neuronal site for memory storage. We found an increased number and size of spines on CA1 engram cells receiving input from CA3 engram cells. In contextual fear conditioning, this enhanced connectivity between engram cells encoded memory strength. CA3 engram to CA1 engram projections strongly occluded long-term potentiation. These results indicate that enhanced structural and functional connectivity between engram cells across two directly connected brain regions forms the synaptic correlate for memory formation."
+            },
+            {
+                id: 4,
+                title: "Encouraging an excitable brain state: mechanisms of brain repair in stroke",
+                authors: "Joy MT, Carmichael ST",
+                journal: "Nat Rev Neurosci",
+                year: 2021,
+                pmid: "33184469",
+                doi: "10.1038/s41583-020-00396-7",
+                keywords: "stroke; neuronal plasticity; brain repair; motor recovery; excitability",
+                mesh: "Animals, Cerebral Cortex / physiopathology, Humans, Neuronal Plasticity / physiology, Stroke / physiopathology, Stroke Rehabilitation",
+                abstract: "Stroke induces a plastic state in the brain. This period of enhanced plasticity leads to the sprouting of new axons, the formation of new synapses and the remapping of sensory-motor functions, and is associated with motor recovery. This is a remarkable process in the adult brain, which is normally constrained in its levels of neuronal plasticity and connectional change. Recent evidence indicates that these changes are driven by molecular systems that underlie learning and memory, such as changes in cellular excitability during memory formation. This Review examines circuit changes after stroke, the shared mechanisms between memory formation and brain repair, the changes in neuronal excitability that underlie stroke recovery, and the molecular and pharmacological interventions that follow from these findings to promote motor recovery in animal models. From these findings, a framework emerges for understanding recovery after stroke, central to which is the concept of neuronal allocation to damaged circuits. The translation of the concepts discussed here to recovery in humans is underway in clinical trials for stroke recovery drugs."
+            },
+            {
+                id: 5,
+                title: "Mechanisms of memory-supporting neuronal dynamics in hippocampal area CA3",
+                authors: "Li Y, Briguglio JJ, Romani S, Magee JC",
+                journal: "Cell",
+                year: 2024,
+                pmid: "39454575",
+                doi: "10.1016/j.cell.2024.09.041",
+                keywords: "BTSP; CA3; attractor dynamics; hippocampus; memory; place cell; synaptic plasticity",
+                mesh: "Animals, CA3 Region, Hippocampal / cytology, CA3 Region, Hippocampal / physiology, Dentate Gyrus / cytology, Dentate Gyrus / physiology, Entorhinal Cortex* / cytology, Entorhinal Cortex / physiology, Male, Memory / physiology, Mice, Mice, Inbred C57BL, Models, Neurological, Neuronal Plasticity / physiology, Neurons / physiology, Optogenetics, Pyramidal Cells / metabolism, Pyramidal Cells / physiology, Synapses / metabolism, Synapses / physiology",
+                abstract: "Hippocampal CA3 is central to memory formation and retrieval. Although various network mechanisms have been proposed, direct evidence is lacking. Using intracellular Vm recordings and optogenetic manipulations in behaving mice, we found that CA3 place-field activity is produced by a symmetric form of behavioral timescale synaptic plasticity (BTSP) at recurrent synapses among CA3 pyramidal neurons but not at synapses from the dentate gyrus (DG). Additional manipulations revealed that excitatory input from the entorhinal cortex (EC) but not the DG was required to update place cell activity based on the animal's movement. These data were captured by a computational model that used BTSP and an external updating input to produce attractor dynamics under online learning conditions. Theoretical analyses further highlight the superior memory storage capacity of such networks, especially when dealing with correlated input patterns. This evidence elucidates the cellular and circuit mechanisms of learning and memory formation in the hippocampus."
+            }
+        ];
+        
+        let papers = [allPapers[2], allPapers[3], allPapers[4]]; // Start with papers 3-5
+        let additionalPapersShown = false;
+        
+        const reasonTextMap = {
+            'need-read-more': 'Research approach not clear from abstract',
+            'tangential': 'Tangentially related to the research question',
+            'too-technical': 'Abstract too technical to quickly assess',
+            'exact-match': 'Directly addresses the research question',
+            'novel-approach': 'Describes specific mechanisms or phenomena to explore',
+            'missing-terminology': 'Contains terminology not in the original search',
+            'meets-terms-not-topic': 'Matches search terms, but is a different topic',
+            'missing-concept': 'In a related area, but too tangential',
+            'wrong-population': 'Wrong population, model, or context'
+        };
+        
+        let currentTab = 0;
+        let screen = 'evaluation';
+        let paperEvaluations = [null, null, null];
+        let step2Visible = false;
+        let currentDecision = null;
+        let changes = [{ id: 1, change: '', rationale: '' }];
+        let nextChangeId = 2;
+        
+        // Dummy group data for visualization
+        const groupData = {
+            totalUsers: 12,
+            papers: [
+                {
+                    id: 3,
+                    relevant: 8,
+                    maybe: 3,
+                    notRelevant: 1,
+                    reasons: {
+                        'exact-match': 6,
+                        'novel-approach': 5,
+                        'missing-terminology': 2,
+                        'need-read-more': 2,
+                        'tangential': 1,
+                        'meets-terms-not-topic': 1
+                    }
+                },
+                {
+                    id: 4,
+                    relevant: 4,
+                    maybe: 5,
+                    notRelevant: 3,
+                    reasons: {
+                        'novel-approach': 3,
+                        'missing-terminology': 2,
+                        'exact-match': 1,
+                        'need-read-more': 3,
+                        'tangential': 2,
+                        'meets-terms-not-topic': 2,
+                        'missing-concept': 1
+                    }
+                },
+                {
+                    id: 5,
+                    relevant: 10,
+                    maybe: 2,
+                    notRelevant: 0,
+                    reasons: {
+                        'exact-match': 9,
+                        'novel-approach': 6,
+                        'missing-terminology': 1,
+                        'tangential': 2
+                    }
+                },
+                {
+                    id: 1,
+                    relevant: 6,
+                    maybe: 4,
+                    notRelevant: 2,
+                    reasons: {
+                        'exact-match': 4,
+                        'novel-approach': 5,
+                        'missing-terminology': 1,
+                        'need-read-more': 3,
+                        'tangential': 1,
+                        'meets-terms-not-topic': 1,
+                        'missing-concept': 1
+                    }
+                },
+                {
+                    id: 2,
+                    relevant: 2,
+                    maybe: 7,
+                    notRelevant: 3,
+                    reasons: {
+                        'novel-approach': 2,
+                        'missing-terminology': 1,
+                        'need-read-more': 5,
+                        'tangential': 4,
+                        'too-technical': 1,
+                        'meets-terms-not-topic': 2,
+                        'missing-concept': 1
+                    }
+                }
+            ]
+        };
+        
+        function render() {
+            const app = document.getElementById('app');
+            
+            if (screen === 'evaluation') {
+                app.innerHTML = renderEvaluationScreen();
+                bindEvaluationEvents();
+            } else if (screen === 'review') {
+                app.innerHTML = renderReviewScreen();
+                bindReviewEvents();
+            } else if (screen === 'group') {
+                app.innerHTML = renderGroupResultsScreen();
+                bindGroupResultsEvents();
+            } else if (screen === 'complete') {
+                app.innerHTML = renderCompleteScreen();
+                bindCompleteEvents();
+            }
+        }
+        
+        function bindEvaluationEvents() {
+            // Bind tab clicks
+            papers.forEach((p, idx) => {
+                const tab = document.querySelector(`[data-tab="${idx}"]`);
+                if (tab) tab.onclick = () => switchTab(idx);
+            });
+            
+            // Bind step 1 buttons
+            const maybeBtn = document.querySelector('[data-step1="maybe"]');
+            const notRelBtn = document.querySelector('[data-step1="notRelevant"]');
+            const relBtn = document.querySelector('[data-step1="relevant"]');
+            
+            if (maybeBtn) maybeBtn.onclick = () => handleStep1('maybe');
+            if (notRelBtn) notRelBtn.onclick = () => handleStep1('notRelevant');
+            if (relBtn) relBtn.onclick = () => handleStep1('relevant');
+            
+            // Bind step 2 buttons
+            document.querySelectorAll('[data-step2]').forEach(checkbox => {
+                checkbox.onchange = () => handleStep2(checkbox.dataset.step2);
+            });
+            
+            // Bind review button
+            const viewGroupBtn = document.querySelector('[data-action="view-group"]');
+            if (viewGroupBtn) viewGroupBtn.onclick = () => viewGroupResults();
+            
+            // Bind show more papers button
+            const showMoreBtn = document.querySelector('[data-action="show-more"]');
+            if (showMoreBtn) showMoreBtn.onclick = () => showMorePapers();
+        }
+        
+        function bindReviewEvents() {
+            // Bind expansion toggles
+            document.querySelectorAll('[data-toggle]').forEach(toggle => {
+                toggle.onclick = () => toggleExpansion(parseInt(toggle.dataset.toggle));
+            });
+            
+            // Bind add change button
+            const addBtn = document.querySelector('[data-action="add-change"]');
+            if (addBtn) addBtn.onclick = () => addChange();
+            
+            // Bind navigation buttons
+            const backBtn = document.querySelector('[data-action="back"]');
+            const completeBtn = document.querySelector('[data-action="complete"]');
+            const viewGroupBtn = document.querySelector('[data-action="view-group"]');
+            if (backBtn) backBtn.onclick = () => backToPapers();
+            if (completeBtn) completeBtn.onclick = () => completeActivity();
+            if (viewGroupBtn) viewGroupBtn.onclick = () => viewGroupResults();
+            
+            // Bind change inputs
+            changes.forEach(c => {
+                const changeInput = document.querySelector(`[data-change-id="${c.id}"][data-field="change"]`);
+                const rationaleInput = document.querySelector(`[data-change-id="${c.id}"][data-field="rationale"]`);
+                if (changeInput) changeInput.onchange = (e) => updateChange(c.id, 'change', e.target.value);
+                if (rationaleInput) rationaleInput.onchange = (e) => updateChange(c.id, 'rationale', e.target.value);
+            });
+        }
+        
+        function bindCompleteEvents() {
+            const resetBtn = document.querySelector('[data-action="reset"]');
+            if (resetBtn) resetBtn.onclick = () => resetActivity();
+        }
+        
+        function renderEvaluationScreen() {
+            const paper = papers[currentTab];
+            const evalData = paperEvaluations[currentTab];
+            const allEvaluated = paperEvaluations.every(e => e !== null && !e.incomplete);
+            
+            return `
+                <div class="md-card">
+                    <div class="md-card-content">
+                        <h1 class="md-h4">Screening Search Results for Relevance</h1>
+                        <div class="md-subtitle1">
+                            <strong>Search query for:</strong> How does neuroplasticity contribute to memory formation?
+                        </div>
+                        <div class="search-query-box">
+                            ("neuroplasticity"[Title/Abstract] OR "brain plasticity"[Title/Abstract] OR "Neuronal Plasticity"[MeSH] OR "neural plasticity"[Title/Abstract])<br>
+                            <span style="color: #1976d2; font-weight: bold;">AND</span><br>
+                            ("memory formation"[Title/Abstract] OR "Memory Consolidation"[MeSH] OR "memory encoding"[Title/Abstract])
+                        </div>
+                        <div class="md-body2" style="color: rgba(0,0,0,0.6);">Showing results 1-${papers.length} of 147</div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 0;">
+                    <div class="md-tabs">
+                        ${papers.map((p, idx) => {
+                            const paperNumber = idx + 1;
+                            return `
+                            <button class="md-tab ${idx === currentTab ? 'active' : ''}" data-tab="${idx}">
+                                <span class="md-chip ${getStatusClass(idx)}">${getStatusIcon(idx)}</span>
+                                Paper ${paperNumber}
+                            </button>
+                        `}).join('')}
+                    </div>
+                    ${paperEvaluations.slice(0, 3).every(e => e !== null && !e.incomplete) ? `
+                        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                            ${!additionalPapersShown ? `
+                                <button class="md-button md-button-outlined" data-action="show-more">
+                                    <span class="material-icons">add</span>
+                                    Show More Papers
+                                </button>
+                            ` : ''}
+                            <button class="md-button md-button-contained md-button-review" data-action="view-group">
+                                View Group Results
+                                <span class="material-icons">arrow_forward</span>
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+                
+                <div class="md-card" style="margin-top: 0; border-top-left-radius: 0; margin-bottom: 8px;">
+                    <div class="md-card-content">
+                        <div class="evaluation-card">
+                            <div class="md-subtitle1" style="font-weight: 500;">
+                                What's your first impression of this paper?
+                            </div>
+                            <div class="button-row">
+                                <button class="md-button md-button-outlined ${evalData?.decision === 'relevant' ? 'selected' : ''}" data-step1="relevant">
+                                    Relevant
+                                </button>
+                                <button class="md-button md-button-outlined ${evalData?.decision === 'maybe' ? 'selected' : ''}" data-step1="maybe">
+                                    ? Uncertain
+                                </button>
+                                <button class="md-button md-button-outlined ${evalData?.decision === 'notRelevant' ? 'selected' : ''}" data-step1="notRelevant">
+                                    Not Relevant
+                                </button>
+                            </div>
+                            
+                            ${step2Visible ? `
+                                <hr class="step-divider">
+                                <div class="md-subtitle1" style="font-weight: 500;">
+                                    What observations support this impression? (Select all that apply)
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+                                    ${getReasonOptions(currentDecision).map(opt => `
+                                        <label class="checkbox-option ${evalData?.reasons?.includes(opt.key) ? 'selected' : ''}" data-reason="${opt.key}">
+                                            <input type="checkbox" 
+                                                   ${evalData?.reasons?.includes(opt.key) ? 'checked' : ''} 
+                                                   data-step2="${opt.key}"
+                                                   style="width: 18px; height: 18px; cursor: pointer; flex-shrink: 0; margin: 0;">
+                                            <div style="display: flex; flex: 1; gap: 16px; align-items: flex-start;">
+                                                <span class="md-body2" style="flex: 1;">${opt.label}</span>
+                                                <span class="md-body2" style="font-style: italic; color: #666; flex: 1;">(${opt.action})</span>
+                                            </div>
+                                        </label>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="md-card" style="background: #fafafa; margin-top: 16px;">
+                            <div class="md-card-content" style="padding: 12px;">
+                                <h2 class="md-h6" style="margin-bottom: 8px;">${paper.title}</h2>
+                                <div class="md-body2" style="color: rgba(0,0,0,0.6); margin-bottom: 2px;">${paper.authors}</div>
+                                <div class="md-body2" style="color: rgba(0,0,0,0.6); margin-bottom: 2px;">${paper.journal}. ${paper.year}</div>
+                                <div class="md-body2" style="color: rgba(0,0,0,0.6); margin-bottom: 8px;">PMID: ${paper.pmid} | DOI: ${paper.doi}</div>
+                                <div style="padding: 10px; background: white; border-radius: 4px; margin-bottom: 8px;">
+                                    <div class="md-body2">${paper.abstract}</div>
+                                </div>
+                                <div class="md-body2" style="color: rgba(0,0,0,0.6); margin-bottom: 4px;">
+                                    <strong>Keywords:</strong> ${paper.keywords}
+                                </div>
+                                <div class="md-body2" style="color: rgba(0,0,0,0.6);">
+                                    <strong>MeSH Terms:</strong> ${paper.mesh}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderReviewScreen() {
+            const grouped = groupPapers();
+            
+            return `
+                <h1 class="md-h4" style="margin-bottom: 16px;">Review Your Evaluations</h1>
+                
+                ${renderPaperGroup('Relevant Papers', grouped.relevant, 'relevant')}
+                ${renderPaperGroup('Maybe Papers', grouped.maybe, 'maybe')}
+                ${renderPaperGroup('Not Relevant Papers', grouped.notRelevant, 'not-relevant')}
+                
+                <div class="md-card" style="border: 2px solid #1976d2;">
+                    <div class="md-card-content">
+                        <h2 class="md-h6">What changes would you make to improve your search?</h2>
+                        
+                        <div class="changes-table">
+                            <div class="changes-table-header">
+                                <div class="changes-table-header-cell">Change to Make</div>
+                                <div class="changes-table-header-cell">Rationale</div>
+                            </div>
+                            <div id="changesContainer">
+                                ${changes.map(c => `
+                                    <div class="change-row">
+                                        <div class="change-cell">
+                                            <textarea class="md-textfield" placeholder="e.g., Add 'synaptic consolidation' as an OR term" data-change-id="${c.id}" data-field="change">${c.change}</textarea>
+                                        </div>
+                                        <div class="change-cell">
+                                            <textarea class="md-textfield" placeholder="e.g., Multiple relevant papers used this term" data-change-id="${c.id}" data-field="rationale">${c.rationale}</textarea>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        
+                        <button class="md-button md-button-outlined" data-action="add-change">
+                            <span class="material-icons">add</span>
+                            Add Another Change
+                        </button>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 16px; justify-content: center; margin-top: 24px;">
+                    <button class="md-button md-button-outlined" data-action="back">Back to Papers</button>
+                    <button class="md-button md-button-outlined" data-action="view-group">View Group Results</button>
+                    <button class="md-button md-button-contained" data-action="complete">Complete Activity</button>
+                </div>
+            `;
+        }
+        
+        function renderPaperGroup(title, papers, className) {
+            return `
+                <div class="review-section">
+                    <div class="review-header ${className}">
+                        <h2 class="md-h6" style="margin: 0;">${title}</h2>
+                        <div class="md-chip evaluated">${papers.length}</div>
+                    </div>
+                    <div class="review-body">
+                        ${papers.length === 0 ? `
+                            <div class="md-body2" style="color: rgba(0,0,0,0.6); font-style: italic;">
+                                No papers marked in this category
+                            </div>
+                        ` : papers.map((p, idx) => `
+                            <div class="md-expansion-panel">
+                                <div class="md-expansion-header" data-toggle="${p.id}">
+                                    <span class="material-icons" id="icon-${p.id}" style="margin-right: 12px;">chevron_right</span>
+                                    <div style="flex: 1;">
+                                        <div class="md-body2" style="font-weight: 500; margin-bottom: 4px;">${p.title}</div>
+                                        <div class="md-body2" style="color: rgba(0,0,0,0.6); font-size: 13px;">${p.authors}</div>
+                                    </div>
+                                </div>
+                                <div style="padding: 8px 16px; background: #f9f9f9; border-top: 1px solid rgba(0,0,0,0.12);">
+                                    ${p.reasonsList.map(reason => `
+                                        <div class="md-body2" style="display: flex; align-items: flex-start; gap: 8px; margin-bottom: 4px;">
+                                            <span style="color: ${getReasonColor(className)}; font-size: 8px; margin-top: 6px;">●</span>
+                                            <span style="flex: 1;">${reason}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                <div class="md-expansion-content" id="content-${p.id}">
+                                    <div class="md-body2" style="margin-bottom: 6px;"><strong>Journal:</strong> ${p.journal}, ${p.year}</div>
+                                    <div class="md-body2" style="margin-bottom: 6px;"><strong>PMID:</strong> ${p.pmid} | <strong>DOI:</strong> ${p.doi}</div>
+                                    <div class="md-body2" style="margin-bottom: 8px;">${p.abstract}</div>
+                                    <div class="md-body2" style="margin-bottom: 6px;"><strong>Keywords:</strong> ${p.keywords}</div>
+                                    <div class="md-body2" style="margin-bottom: 8px;"><strong>MeSH Terms:</strong> ${p.mesh}</div>
+                                    <a href="https://pubmed.ncbi.nlm.nih.gov/${p.pmid}/" target="_blank" rel="noopener noreferrer" style="color: #1976d2; text-decoration: none;">View full paper on PubMed</a>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function getReasonColor(className) {
+            if (className === 'relevant') return '#4caf50';
+            if (className === 'maybe') return '#ff9800';
+            if (className === 'not-relevant') return '#757575';
+            return '#e0e0e0';
+        }
+        
+        function renderCompleteScreen() {
+            const grouped = groupPapers();
+            
+            return `
+                <div class="md-card" style="text-align: center; padding: 48px 24px;">
+                    <span class="material-icons" style="font-size: 64px; color: #4caf50;">check_circle</span>
+                    <h1 class="md-h4" style="color: #4caf50; margin-top: 16px;">Activity Complete!</h1>
+                    <div class="md-h6" style="margin-bottom: 24px;">You evaluated all ${papers.length} papers.</div>
+                    <div style="display: flex; justify-content: center; gap: 48px; margin: 24px 0;">
+                        <div>
+                            <div class="md-body2">Relevant</div>
+                            <div class="md-h4">${grouped.relevant.length}</div>
+                        </div>
+                        <div>
+                            <div class="md-body2">Maybe</div>
+                            <div class="md-h4">${grouped.maybe.length}</div>
+                        </div>
+                        <div>
+                            <div class="md-body2">Not Relevant</div>
+                            <div class="md-h4">${grouped.notRelevant.length}</div>
+                        </div>
+                    </div>
+                    <button class="md-button md-button-contained" data-action="reset">Start Over</button>
+                </div>
+            `;
+        }
+        
+        function getStatusClass(index) {
+            const eval = paperEvaluations[index];
+            if (!eval) return 'unevaluated';
+            if (eval.incomplete) return 'in-progress';
+            return 'evaluated';
+        }
+        
+        function getStatusIcon(index) {
+            const eval = paperEvaluations[index];
+            if (!eval) return '○';
+            if (eval.incomplete) return '◐';
+            return '●';
+        }
+        
+        function getReasonOptions(decision) {
+            const options = {
+                'maybe': [
+                    { key: 'need-read-more', label: 'Research approach not clear from abstract', action: 'Scan methods and results for relevance' },
+                    { key: 'tangential', label: 'Tangentially related to the research question', action: 'Consider for background or set aside' },
+                    { key: 'too-technical', label: 'Abstract too technical to quickly assess', action: 'Read more carefully or consult expert' }
+                ],
+                'relevant': [
+                    { key: 'exact-match', label: 'Directly addresses the research question', action: 'Mark for detailed reading' },
+                    { key: 'novel-approach', label: 'Describes specific mechanisms or phenomena to explore', action: 'Add search terms for these aspects' },
+                    { key: 'missing-terminology', label: 'Contains terminology not in the original search', action: 'Read about these terms to understand relevance' }
+                ],
+                'notRelevant': [
+                    { key: 'meets-terms-not-topic', label: 'Matches search terms, but is a different topic', action: 'No change; unavoidable mismatch' },
+                    { key: 'missing-concept', label: 'In a related area, but too tangential', action: 'Refine or add search terms to fine-tune results' },
+                    { key: 'wrong-population', label: 'Wrong population, model, or context', action: 'Add filters to exclude these' }
+                ]
+            };
+            return options[decision] || [];
+        }
+        
+        function groupPapers() {
+            const grouped = { relevant: [], maybe: [], notRelevant: [] };
+            paperEvaluations.forEach((eval, idx) => {
+                if (!eval || eval.incomplete) return;
+                const paper = { 
+                    ...papers[idx], 
+                    reasons: eval.reasons.map(r => reasonTextMap[r]).join('; '),
+                    reasonsList: eval.reasons.map(r => reasonTextMap[r])
+                };
+                if (eval.decision === 'relevant') grouped.relevant.push(paper);
+                else if (eval.decision === 'maybe') grouped.maybe.push(paper);
+                else if (eval.decision === 'notRelevant') grouped.notRelevant.push(paper);
+            });
+            return grouped;
+        }
+        
+        function switchTab(index) {
+            currentTab = index;
+            const evalData = paperEvaluations[index];
+            if (evalData && evalData.decision) {
+                currentDecision = evalData.decision;
+                step2Visible = true;
+            } else {
+                step2Visible = false;
+                currentDecision = null;
+            }
+            render();
+        }
+        
+        function handleStep1(decision) {
+            currentDecision = decision;
+            step2Visible = true;
+            paperEvaluations[currentTab] = { decision, reasons: [], incomplete: true };
+            render();
+        }
+        
+        function handleStep2(reason) {
+            const currentEval = paperEvaluations[currentTab];
+            if (!currentEval) return;
+            
+            const reasons = currentEval.reasons || [];
+            const index = reasons.indexOf(reason);
+            
+            if (index > -1) {
+                // Remove if already selected
+                reasons.splice(index, 1);
+            } else {
+                // Add if not selected
+                reasons.push(reason);
+            }
+            
+            paperEvaluations[currentTab] = { 
+                decision: currentDecision, 
+                reasons: reasons,
+                incomplete: reasons.length === 0
+            };
+            render();
+        }
+        
+        function showMorePapers() {
+            // Add papers 1 and 2 to the end
+            papers = [...papers, allPapers[0], allPapers[1]];
+            // Add two null slots to the end of evaluations
+            paperEvaluations = [...paperEvaluations, null, null];
+            additionalPapersShown = true;
+            render();
+        }
+        
+        function viewGroupResults() {
+            screen = 'group';
+            render();
+        }
+        
+        function renderGroupResultsScreen() {
+            return `
+                <h1 class="md-h4" style="margin-bottom: 16px;">Group Results (${groupData.totalUsers} participants)</h1>
+                
+                ${papers.map((paper, idx) => {
+                    const paperData = groupData.papers.find(p => p.id === paper.id);
+                    if (!paperData) return '';
+                    
+                    const userEval = paperEvaluations[idx];
+                    const total = groupData.totalUsers;
+                    
+                    // Categorize reasons
+                    const relevantReasons = ['exact-match', 'novel-approach', 'missing-terminology'];
+                    const maybeReasons = ['need-read-more', 'tangential', 'too-technical'];
+                    const notRelevantReasons = ['meets-terms-not-topic', 'missing-concept', 'wrong-population'];
+                    
+                    const getReasonsByCategory = (category) => {
+                        return Object.entries(paperData.reasons)
+                            .filter(([key]) => category.includes(key))
+                            .sort((a, b) => b[1] - a[1]);
+                    };
+                    
+                    return `
+                        <div class="md-card" style="margin-bottom: 12px;">
+                            <div class="md-expansion-header" data-toggle-group="${paper.id}" style="cursor: pointer;">
+                                <span class="material-icons" id="group-icon-${paper.id}" style="margin-right: 12px;">chevron_right</span>
+                                <div style="flex: 1;">
+                                    <div class="md-body2" style="font-weight: 500; margin-bottom: 8px;">Paper ${idx + 1}: ${paper.title}</div>
+                                    <div style="display: flex; gap: 32px; align-items: center;">
+                                        <div style="display: flex; gap: 24px; align-items: center;">
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <div style="display: flex; align-items: center; gap: 8px;">
+                                                    <span style="font-size: 13px; width: 80px; color: rgba(0,0,0,0.87);">Relevant</span>
+                                                    <div style="width: 200px; height: 20px; background: #e8f5e9; border-radius: 4px; overflow: hidden; position: relative;">
+                                                        <div style="width: ${(paperData.relevant/total*100)}%; height: 100%; background-color: #4caf50;"></div>
+                                                    </div>
+                                                    <span style="color: rgba(0,0,0,0.87); font-weight: 600; font-size: 14px; width: 30px;">${paperData.relevant}</span>
+                                                </div>
+                                                <div style="display: flex; align-items: center; gap: 8px;">
+                                                    <span style="font-size: 13px; width: 80px; color: rgba(0,0,0,0.87);">Uncertain</span>
+                                                    <div style="width: 200px; height: 20px; background: #fff3e0; border-radius: 4px; overflow: hidden; position: relative;">
+                                                        <div style="width: ${(paperData.maybe/total*100)}%; height: 100%; background-color: #ff9800;"></div>
+                                                    </div>
+                                                    <span style="color: rgba(0,0,0,0.87); font-weight: 600; font-size: 14px; width: 30px;">${paperData.maybe}</span>
+                                                </div>
+                                                <div style="display: flex; align-items: center; gap: 8px;">
+                                                    <span style="font-size: 13px; width: 80px; color: rgba(0,0,0,0.87);">Not Relevant</span>
+                                                    <div style="width: 200px; height: 20px; background: #f5f5f5; border-radius: 4px; overflow: hidden; position: relative;">
+                                                        <div style="width: ${(paperData.notRelevant/total*100)}%; height: 100%; background-color: #757575;"></div>
+                                                    </div>
+                                                    <span style="color: rgba(0,0,0,0.87); font-weight: 600; font-size: 14px; width: 30px;">${paperData.notRelevant}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="md-expansion-content" id="group-content-${paper.id}">
+                                <div style="padding: 16px; background: #f9f9f9;">
+                                    ${userEval ? `
+                                        <div style="margin-bottom: 16px; padding: 8px 12px; background: #e3f2fd; border-radius: 4px; display: inline-flex; align-items: center; gap: 8px;">
+                                            <span class="material-icons" style="font-size: 16px; color: #1976d2;">person</span>
+                                            <span class="md-body2" style="font-size: 12px; color: #1976d2; font-weight: 500;">Your selections highlighted in blue</span>
+                                        </div>
+                                    ` : ''}
+                                    
+                                    <h3 class="md-h6" style="margin-bottom: 8px; color: #4caf50;">Relevant</h3>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                                        ${getReasonsByCategory(relevantReasons).map(([key, count]) => {
+                                            const isUserSelected = userEval && userEval.reasons && userEval.reasons.includes(key);
+                                            return `
+                                                <div style="padding: 8px 12px; background: white; border-radius: 4px; border-left: 3px solid ${isUserSelected ? '#1976d2' : '#e0e0e0'}; ${isUserSelected ? 'font-weight: 500;' : ''}">
+                                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                        <span class="md-body2" style="font-size: 13px;">${reasonTextMap[key]}</span>
+                                                        <span style="background: ${isUserSelected ? '#1976d2' : '#757575'}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 500; margin-left: 8px;">${count}</span>
+                                                    </div>
+                                                </div>
+                                            `;
+                                        }).join('') || '<div style="color: rgba(0,0,0,0.5); font-style: italic; font-size: 13px;">No observations in this category</div>'}
+                                    </div>
+                                    
+                                    <h3 class="md-h6" style="margin-bottom: 8px; color: #ff9800;">Uncertain</h3>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                                        ${getReasonsByCategory(maybeReasons).map(([key, count]) => {
+                                            const isUserSelected = userEval && userEval.reasons && userEval.reasons.includes(key);
+                                            return `
+                                                <div style="padding: 8px 12px; background: white; border-radius: 4px; border-left: 3px solid ${isUserSelected ? '#1976d2' : '#e0e0e0'}; ${isUserSelected ? 'font-weight: 500;' : ''}">
+                                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                        <span class="md-body2" style="font-size: 13px;">${reasonTextMap[key]}</span>
+                                                        <span style="background: ${isUserSelected ? '#1976d2' : '#757575'}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 500; margin-left: 8px;">${count}</span>
+                                                    </div>
+                                                </div>
+                                            `;
+                                        }).join('') || '<div style="color: rgba(0,0,0,0.5); font-style: italic; font-size: 13px;">No observations in this category</div>'}
+                                    </div>
+                                    
+                                    <h3 class="md-h6" style="margin-bottom: 8px; color: #757575;">Not Relevant</h3>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                        ${getReasonsByCategory(notRelevantReasons).map(([key, count]) => {
+                                            const isUserSelected = userEval && userEval.reasons && userEval.reasons.includes(key);
+                                            return `
+                                                <div style="padding: 8px 12px; background: white; border-radius: 4px; border-left: 3px solid ${isUserSelected ? '#1976d2' : '#e0e0e0'}; ${isUserSelected ? 'font-weight: 500;' : ''}">
+                                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                        <span class="md-body2" style="font-size: 13px;">${reasonTextMap[key]}</span>
+                                                        <span style="background: ${isUserSelected ? '#1976d2' : '#757575'}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 500; margin-left: 8px;">${count}</span>
+                                                    </div>
+                                                </div>
+                                            `;
+                                        }).join('') || '<div style="color: rgba(0,0,0,0.5); font-style: italic; font-size: 13px;">No observations in this category</div>'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+                
+                <div style="display: flex; gap: 16px; justify-content: center; margin-top: 24px;">
+                    <button class="md-button md-button-outlined" data-action="back-to-evaluation">Back to Evaluation</button>
+                    <button class="md-button md-button-contained" data-action="complete">Complete Activity</button>
+                </div>
+            `;
+        }
+        
+        function bindGroupResultsEvents() {
+            // Bind expansion toggles
+            papers.forEach(paper => {
+                const toggle = document.querySelector(`[data-toggle-group="${paper.id}"]`);
+                if (toggle) toggle.onclick = () => toggleGroupExpansion(paper.id);
+            });
+            
+            // Bind navigation buttons
+            const backBtn = document.querySelector('[data-action="back-to-evaluation"]');
+            const completeBtn = document.querySelector('[data-action="complete"]');
+            if (backBtn) backBtn.onclick = () => { screen = 'evaluation'; render(); };
+            if (completeBtn) completeBtn.onclick = () => completeActivity();
+        }
+        
+        function toggleGroupExpansion(id) {
+            const content = document.getElementById(`group-content-${id}`);
+            const icon = document.getElementById(`group-icon-${id}`);
+            content.classList.toggle('expanded');
+            icon.textContent = content.classList.contains('expanded') ? 'expand_more' : 'chevron_right';
+        }
+        
+        function goToReview() {
+            screen = 'review';
+            render();
+        }
+        
+        function backToPapers() {
+            screen = 'evaluation';
+            render();
+        }
+        
+        function completeActivity() {
+            screen = 'complete';
+            render();
+        }
+        
+        function resetActivity() {
+            papers = [allPapers[2], allPapers[3], allPapers[4]]; // Reset to papers 3-5
+            additionalPapersShown = false;
+            currentTab = 0;
+            screen = 'evaluation';
+            paperEvaluations = [null, null, null];
+            step2Visible = false;
+            currentDecision = null;
+            changes = [{ id: 1, change: '', rationale: '' }];
+            nextChangeId = 2;
+            render();
+        }
+        
+        function toggleExpansion(id) {
+            const content = document.getElementById(`content-${id}`);
+            const icon = document.getElementById(`icon-${id}`);
+            content.classList.toggle('expanded');
+            icon.textContent = content.classList.contains('expanded') ? 'expand_more' : 'chevron_right';
+        }
+        
+        function addChange() {
+            changes.push({ id: nextChangeId, change: '', rationale: '' });
+            nextChangeId++;
+            render();
+        }
+        
+        function updateChange(id, field, value) {
+            const change = changes.find(c => c.id === id);
+            if (change) change[field] = value;
+        }
+        
+        // Initial render
+        render();
+    </script>
+</body>
+</html>
