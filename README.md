@@ -4,7 +4,7 @@
 [Research Tools Quiz](https://c4r-io.github.io/duq_lit-activities/research-tools-quiz.html)
 
 ## Lesson 2
-[Write an outreach email](c4r-io.github.io/duq_lit-activities/write-an-outreach-email.html)
+[Write an outreach email](http://c4r-io.github.io/duq_lit-activities/write-an-outreach-email.html)
 
 ## Lesson 3 
 [Build a PubMed Search Strategy](https://c4r-io.github.io/duq_lit-activities/boolean-search-builder.html)
