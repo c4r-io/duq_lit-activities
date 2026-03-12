@@ -1,0 +1,1225 @@
+import { useState } from "react";
+
+// --- Design Tokens ---
+const C = {
+  accent: '#6F00FF',
+  accentLight: 'rgba(111,0,255,0.08)',
+  blue: '#0082FF',
+  blueLight: '#F0F4FF',
+  black: '#202020',
+  dark: '#333132',
+  mid: '#757575',
+  border: '#E0E0E0',
+  light: '#F3F3F3',
+  white: '#FFFFFF',
+};
+
+const STYLE_COLORS = {
+  Formal:         { bg: '#EEF2FF', color: '#3730A3', border: '#C7D2FE' },
+  Conversational: { bg: '#F0FDF4', color: '#166534', border: '#BBF7D0' },
+  Direct:         { bg: '#FFF7ED', color: '#9A3412', border: '#FED7AA' },
+  Indirect:       { bg: '#FDF4FF', color: '#7E22CE', border: '#E9D5FF' },
+};
+
+// --- Step Content ---
+const STEP_OPTIONS = {
+  1: {
+    label: 'Greeting',
+    instruction: 'Click each option to review its pros and cons. While none of these may match the exact wording you would choose, select the one you think represents the strongest approach.',
+    options: [
+      {
+        id: 'a', styles: ['Formal', 'Direct'],
+        label: '"Dear Professor Xavier,"',
+        emailText: 'Dear Professor Xavier,',
+        pros: 'Professional and respectful. Works well across academic cultures and sets a serious, clear tone from the outset.',
+        cons: 'Can read as stiff in departments where email culture tends to be more casual or collegial.',
+      },
+      {
+        id: 'b', styles: ['Conversational', 'Direct'],
+        label: '"Hi Professor Xavier,"',
+        emailText: 'Hi Professor Xavier,',
+        pros: 'Warm and approachable while still acknowledging the professional relationship. Common in many modern academic settings.',
+        cons: 'May come across as overly casual for a first cold email to a senior faculty member you have not yet met.',
+      },
+      {
+        id: 'c', styles: ['Formal', 'Indirect'],
+        label: '"Hello,"',
+        emailText: 'Hello,',
+        pros: 'Neutral and inoffensive. Works when you are uncertain of the recipient\'s preferred register.',
+        cons: 'Generic. Does not address the recipient by name, which misses an easy opportunity to personalize the opening.',
+      },
+      {
+        id: 'd', styles: ['Conversational', 'Indirect'],
+        label: '"Good morning! I hope this message finds you well and that you are having a productive week."',
+        emailText: 'Good morning! I hope this message finds you well and that you are having a productive week.',
+        pros: 'Creates a friendly, personable opening that can put the reader at ease before you make your request.',
+        cons: 'Delays getting to the point. Time-dependent greetings can feel off if read later. Filler language may dilute the impact of your request.',
+      },
+    ],
+  },
+  2: {
+    label: 'Reason for Contact',
+    instruction: 'Click each option to review its pros and cons. While none of these may match the exact wording you would choose, select the one you think represents the strongest approach.',
+    options: [
+      {
+        id: 'a', styles: ['Formal', 'Direct'],
+        label: '"I am writing regarding your recent publication in Nature Neuroscience on cerebral organoid techniques."',
+        emailText: 'I am writing regarding your recent publication in Nature Neuroscience on cerebral organoid techniques.',
+        pros: 'Immediately anchors the email in a specific, identifiable piece of work. The reader knows exactly why you are here.',
+        cons: 'Minimal in warmth. Provides no signal of genuine engagement with the paper itself.',
+      },
+      {
+        id: 'b', styles: ['Conversational', 'Direct'],
+        label: '"I came across your recent Nature Neuroscience paper on cerebral organoids and found it directly relevant to my dissertation work on Alzheimer\'s pharmacology."',
+        emailText: "I came across your recent Nature Neuroscience paper on cerebral organoids and found it directly relevant to my dissertation work on Alzheimer's pharmacology.",
+        pros: 'Specifies both the paper and your own project. Gives the recipient a clear picture of the connection before any request is made.',
+        cons: 'Slightly longer than a purely formal opener, but the added context earns its place.',
+      },
+      {
+        id: 'c', styles: ['Conversational', 'Indirect'],
+        label: '"My name is [Name] and I am a second-year PhD student in the Neuroscience program at [University]. I completed my undergraduate work at [School] and am currently working on a dissertation examining pharmacological interventions for Alzheimer\'s disease using cerebral organoid models. I recently came across your Nature Neuroscience paper and wanted to reach out."',
+        emailText: "My name is [Name] and I am a second-year PhD student in the Neuroscience program at [University]. I completed my undergraduate work at [School] and am currently working on a dissertation examining pharmacological interventions for Alzheimer's disease using cerebral organoid models. I recently came across your Nature Neuroscience paper and wanted to reach out.",
+        pros: 'Establishes your identity and credentials upfront. A reader who does not know you will at least understand who you are and where you are coming from.',
+        cons: 'Leads with a wall of self-introduction before the reason for contact is clear. Most faculty readers will skim or skip to the ask. Save the biography for after you have stated your purpose.',
+      },
+      {
+        id: 'd', styles: ['Conversational', 'Indirect'],
+        label: '"I have spent the past few weeks immersed in the literature on cerebral organoids, and your paper kept coming up. I found it genuinely exciting to read."',
+        emailText: 'I have spent the past few weeks immersed in the literature on cerebral organoids, and your paper kept coming up. I found it genuinely exciting to read.',
+        pros: 'Conveys authentic enthusiasm and signals that you engaged with the paper, not just its title. Can build real rapport.',
+        cons: 'The reason for writing is still implicit at this point. In a busy inbox, the reader may not yet understand what you want.',
+      },
+    ],
+  },
+  3: {
+    label: 'The Ask',
+    instruction: 'Click each option to review its pros and cons. While none of these may match the exact wording you would choose, select the one you think represents the strongest approach.',
+    options: [
+      {
+        id: 'a', styles: ['Formal', 'Direct'],
+        label: '"I would like to request a 30-minute meeting at your convenience to discuss the methodology described in your paper."',
+        emailText: 'I would like to request a 30-minute meeting at your convenience to discuss the methodology described in your paper.',
+        pros: "Unambiguous. Specifying 30 minutes signals that you respect the recipient's time and have thought about the scope of the conversation.",
+        cons: 'Some recipients may find a specific time request presumptuous from someone they have not yet met.',
+      },
+      {
+        id: 'b', styles: ['Conversational', 'Direct'],
+        label: '"Would you be open to a brief meeting to talk through the methodology of the paper?"',
+        emailText: 'Would you be open to a brief meeting to talk through the methodology of the paper?',
+        pros: 'Phrased as a question, which gives the recipient clear agency to say yes or propose an alternative. Friendly and easy to respond to.',
+        cons: '"Brief" is less concrete than a time estimate. Some readers prefer knowing exactly what they are agreeing to.',
+      },
+      {
+        id: 'c', styles: ['Formal', 'Direct'],
+        label: '"Could we set up a brief 30-minute meeting to discuss this work? Alternatively, if your schedule is too tight for a meeting, I would be happy to send along a prepared list of specific questions for you to respond to at your own convenience — whichever format works best for you."',
+        emailText: 'Could we set up a brief 30-minute meeting to discuss this work? Alternatively, if your schedule is too tight for a meeting, I would be happy to send along a prepared list of specific questions for you to respond to at your own convenience — whichever format works best for you.',
+        pros: 'Offers a concrete fallback, which shows preparation and consideration for the recipient\'s time. Some busy faculty genuinely prefer async Q&A over a scheduled call.',
+        cons: 'Presenting two options in one sentence complicates a cold ask. The alternative option may inadvertently give the recipient an easy out from committing to a meeting. Keep the initial request simple and offer alternatives only if the first is declined.',
+      },
+      {
+        id: 'd', styles: ['Conversational', 'Indirect'],
+        label: '"I would absolutely love the chance to sit down with you sometime. A brief conversation would be incredibly valuable to me as an early career scientist."',
+        emailText: 'I would absolutely love the chance to sit down with you sometime. A brief conversation would be incredibly valuable to me as an early career scientist.',
+        pros: 'Expresses genuine enthusiasm. The hedged framing reduces perceived pressure on the recipient.',
+        cons: 'Language like "absolutely love" and "incredibly valuable" can read as hyperbolic. The ask remains imprecise, which may require a follow-up exchange to nail down.',
+      },
+    ],
+  },
+  4: {
+    label: 'Availability',
+    instruction: 'Click each option to review its pros and cons. While none of these may match the exact wording you would choose, select the one you think represents the strongest approach.',
+    options: [
+      {
+        id: 'a', styles: ['Formal', 'Direct'],
+        label: '"I am available Monday through Friday, 9am–5pm PT, and am happy to accommodate your schedule."',
+        emailText: 'I am available Monday through Friday, 9am–5pm PT, and am happy to accommodate your schedule.',
+        pros: 'Concrete and actionable. Giving specific availability removes friction and makes it easy for the recipient to respond with a time.',
+        cons: 'A fixed window may feel constraining. Some readers prefer an open-ended offer of flexibility.',
+      },
+      {
+        id: 'b', styles: ['Conversational', 'Direct'],
+        label: '"I\'m flexible on timing and am happy to meet in person or over video call, whatever works best for you."',
+        emailText: "I'm flexible on timing and am happy to meet in person or over video call, whatever works best for you.",
+        pros: 'Friendly and accommodating. Offering both in-person and virtual options widens the window for scheduling.',
+        cons: 'No time zone or date range is offered. The recipient still has to propose something, which adds a small step.',
+      },
+      {
+        id: 'c', styles: ['Formal', 'Indirect'],
+        label: '"Should you find a moment in your schedule, I would be grateful to coordinate within the next two weeks at your earliest convenience."',
+        emailText: 'Should you find a moment in your schedule, I would be grateful to coordinate within the next two weeks at your earliest convenience.',
+        pros: 'Highly deferential. Signals that you are not pressuring the recipient and will follow their lead entirely.',
+        cons: '"At your earliest convenience" is a placeholder that offers no logistical help. It puts the full burden of scheduling on the recipient.',
+      },
+      {
+        id: 'd', styles: ['Conversational', 'Indirect'],
+        label: '"For your reference, I\'m in PT but my schedule is flexible. Any time that works for you works for me!"',
+        emailText: "For your reference, I'm in PT but my schedule is flexible. Any time that works for you works for me!",
+        pros: 'Noting your time zone is a considerate practical detail. The casual phrasing fits a conversational email without adding length.',
+        cons: 'Vague on specific availability. A recipient who wants to schedule quickly still has to ask for times.',
+      },
+    ],
+  },
+};
+
+// --- Shuffle options once at module load so order is randomized each session ---
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+Object.keys(STEP_OPTIONS).forEach(key => {
+  STEP_OPTIONS[key].options = shuffleArray(STEP_OPTIONS[key].options);
+});
+const REFERENCE_EMAIL_SEGMENTS = [1, 2, 3, 4].map(step => {
+  const stepDef = STEP_OPTIONS[step];
+  const opt = stepDef.options.find(o => o.id === 'd');
+  return { text: opt.emailText, section: stepDef.label };
+});
+
+// --- Shared Components ---
+
+function StyleBadge({ label }) {
+  const s = STYLE_COLORS[label] || {};
+  return (
+    <span style={{
+      display: 'inline-block',
+      padding: '2px 8px',
+      borderRadius: 4,
+      fontSize: '0.75rem',
+      fontWeight: 600,
+      backgroundColor: s.bg,
+      color: s.color,
+      border: `1px solid ${s.border}`,
+      marginRight: 4,
+    }}>
+      {label}
+    </span>
+  );
+}
+
+function ProgressBar({ current, total }) {
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <div style={{ fontSize: '0.8rem', fontWeight: 500, color: C.dark, marginBottom: 6 }}>
+        Screen {current} of {total}
+      </div>
+      <div style={{ height: 8, borderRadius: 4, backgroundColor: C.border, overflow: 'hidden' }}>
+        <div style={{
+          height: '100%',
+          width: `${(current / total) * 100}%`,
+          backgroundColor: C.accent,
+          borderRadius: 4,
+          transition: 'width 0.4s ease',
+        }} />
+      </div>
+    </div>
+  );
+}
+
+// TODO: Replace with shared InstructionCard component
+function InstructionCard({ title, subtitle, children }) {
+  return (
+    <div style={{
+      backgroundColor: C.blueLight,
+      borderLeft: `4px solid ${C.blue}`,
+      borderRadius: 4,
+      padding: 16,
+      marginBottom: 16,
+    }}>
+      {title && (
+        <div style={{ fontSize: '1.2rem', fontWeight: 700, color: C.black, marginBottom: subtitle || children ? 8 : 0 }}>
+          {title}
+        </div>
+      )}
+      {subtitle && (
+        <div style={{ fontSize: '1rem', fontWeight: 500, color: C.dark, marginBottom: children ? 8 : 0 }}>
+          {subtitle}
+        </div>
+      )}
+      {children}
+    </div>
+  );
+}
+
+// TODO: Replace with shared StyledButton component
+function StyledButton({ children, onClick, disabled, variant = 'primary' }) {
+  const [hovered, setHovered] = useState(false);
+  const variants = {
+    primary: {
+      base:     { bg: C.black,  color: C.white, border: C.black  },
+      hover:    { bg: C.accent, color: C.white, border: C.accent },
+      disabled: { bg: C.mid,    color: C.white, border: C.mid    },
+    },
+    secondary: {
+      base:     { bg: C.light,  color: C.dark,  border: C.light  },
+      hover:    { bg: C.dark,   color: C.white, border: C.black  },
+      disabled: { bg: C.border, color: C.mid,   border: C.border },
+    },
+  };
+  const v = variants[variant] || variants.primary;
+  const s = disabled ? v.disabled : hovered ? v.hover : v.base;
+  return (
+    <button
+      onClick={disabled ? undefined : onClick}
+      onMouseEnter={() => !disabled && setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        padding: '10px 20px',
+        fontSize: '1rem',
+        fontWeight: 600,
+        borderRadius: 8,
+        border: `2px solid ${s.border}`,
+        backgroundColor: s.bg,
+        color: s.color,
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        transition: 'all 0.2s ease',
+        transform: hovered && !disabled ? 'scale(1.02)' : 'none',
+        boxShadow: hovered && !disabled ? '0 4px 12px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.12)',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+// Hoverable email segment — section label only in tooltip
+function EmailSegment({ text, section }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <span
+      style={{ position: 'relative' }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <span style={{
+        backgroundColor: hovered ? 'rgba(111,0,255,0.1)' : 'transparent',
+        borderBottom: `2px solid ${C.accent}`,
+        borderRadius: 2,
+        padding: '1px 2px',
+        cursor: 'default',
+        transition: 'background-color 0.15s ease',
+      }}>
+        {text}
+      </span>
+      {hovered && (
+        <span style={{
+          position: 'absolute',
+          bottom: 'calc(100% + 8px)',
+          left: 0,
+          zIndex: 100,
+          backgroundColor: 'rgba(20,20,20,0.95)',
+          color: C.white,
+          padding: '7px 12px',
+          borderRadius: 8,
+          fontSize: '0.8rem',
+          fontWeight: 600,
+          whiteSpace: 'nowrap',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+          pointerEvents: 'none',
+        }}>
+          {section}
+        </span>
+      )}
+    </span>
+  );
+}
+
+// Reusable email body renderer
+function EmailBody({ segments }) {
+  if (!segments || segments.length === 0) return null;
+  const greeting = segments[0];
+  const body = segments.slice(1);
+  const showSignOff = segments.length >= 4;
+  return (
+    <div style={{
+      fontFamily: 'Georgia, "Times New Roman", serif',
+      lineHeight: 1.9,
+      fontSize: '1rem',
+      color: C.black,
+    }}>
+      <div style={{ marginBottom: 10 }}>
+        <EmailSegment text={greeting.text} section={greeting.section} />
+      </div>
+      {body.length > 0 && (
+        <div>
+          {body.map((seg, i) => (
+            <span key={i}>
+              {i > 0 && ' '}
+              <EmailSegment text={seg.text} section={seg.section} />
+            </span>
+          ))}
+        </div>
+      )}
+      {showSignOff && (
+        <div style={{ marginTop: 16, lineHeight: 1.6 }}>
+          <div>Warmly,</div>
+          <div>Rigorous Raven</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Email header fields
+function EmailHeader() {
+  return (
+    <>
+      <div style={{ fontSize: '0.85rem', color: C.mid, marginBottom: 4 }}>
+        <span style={{ fontWeight: 600, color: C.dark }}>To: </span>xavier@university.edu
+      </div>
+      <div style={{ fontSize: '0.85rem', color: C.mid, marginBottom: 16 }}>
+        <span style={{ fontWeight: 600, color: C.dark }}>Subject: </span>Meeting Request — Cerebral Organoid Techniques
+      </div>
+    </>
+  );
+}
+
+// Right-side sticky preview panel during steps
+function EmailPreviewPanel({ segments }) {
+  const hasContent = segments && segments.length > 0;
+  return (
+    <div style={{
+      position: 'sticky',
+      top: 24,
+      backgroundColor: C.white,
+      border: `1px solid ${C.border}`,
+      borderRadius: 8,
+      padding: 20,
+      minHeight: 220,
+    }}>
+      <div style={{
+        fontSize: '0.75rem', fontWeight: 700, color: C.mid,
+        textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12,
+      }}>
+        Email Draft
+      </div>
+      {!hasContent ? (
+        <div style={{
+          fontSize: '0.9rem', fontWeight: 500, color: C.mid,
+          fontStyle: 'italic', lineHeight: 1.6,
+        }}>
+          Your email will appear here as you make selections.
+        </div>
+      ) : (
+        <>
+          <EmailHeader />
+          <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 16 }}>
+            <EmailBody segments={segments} />
+          </div>
+          <div style={{ marginTop: 12, fontSize: '0.75rem', fontWeight: 500, color: C.mid }}>
+            Hover over underlined text to identify each section.
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// Feedback/analysis card shown after selecting an option
+function FeedbackCard({ option }) {
+  return (
+    <div style={{
+      backgroundColor: C.light,
+      border: `1px solid ${C.border}`,
+      borderRadius: 8,
+      padding: 16,
+      marginTop: 16,
+    }}>
+      <div style={{
+        fontSize: '0.75rem', fontWeight: 700, color: C.dark,
+        textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10,
+      }}>
+        Analysis
+      </div>
+      {option.pros && (
+        <div style={{ marginBottom: 8, fontSize: '0.9rem', lineHeight: 1.6 }}>
+          <span style={{ fontWeight: 700, color: '#166534' }}>Works well: </span>
+          <span style={{ fontWeight: 500, color: C.dark }}>{option.pros}</span>
+        </div>
+      )}
+      {option.cons && (
+        <div style={{ fontSize: '0.9rem', lineHeight: 1.6 }}>
+          <span style={{ fontWeight: 700, color: '#9A3412' }}>Trade-off: </span>
+          <span style={{ fontWeight: 500, color: C.dark }}>{option.cons}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Option card — no style badges shown
+function OptionCard({ option, selected, onSelect }) {
+  const [hovered, setHovered] = useState(false);
+  const isSelected = selected === option.id;
+  return (
+    <div
+      onClick={() => onSelect(option.id)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        padding: 16,
+        borderRadius: 8,
+        border: `2px solid ${isSelected ? C.accent : C.border}`,
+        backgroundColor: isSelected ? C.accentLight : C.white,
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        boxShadow: hovered ? '0 4px 12px rgba(0,0,0,0.15)' : '0 1px 4px rgba(0,0,0,0.06)',
+        transform: hovered ? 'translateY(-1px)' : 'none',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+        <div style={{
+          width: 20, height: 20, borderRadius: '50%',
+          border: `2px solid ${isSelected ? C.accent : C.border}`,
+          backgroundColor: isSelected ? C.accent : C.white,
+          flexShrink: 0, marginTop: 2,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'all 0.15s ease',
+        }}>
+          {isSelected && <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: C.white }} />}
+        </div>
+        <div style={{ fontSize: '1rem', fontWeight: 500, color: C.black, lineHeight: 1.5, fontStyle: 'italic' }}>
+          {option.label}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Context banner — expanded by default, no toggle
+function ContextBanner() {
+  return (
+    <div style={{
+      backgroundColor: C.blueLight,
+      border: `1px solid #C7D2FE`,
+      borderRadius: 6,
+      padding: '12px 16px',
+      marginBottom: 16,
+      fontSize: '0.85rem',
+      fontWeight: 500,
+      color: C.dark,
+      lineHeight: 1.6,
+    }}>
+      <span style={{ fontWeight: 700, color: C.black }}>Your scenario: </span>
+      You are working on a project on the development of cerebral organoids to study pharmacological treatments for Alzheimer's disease. You want to meet with Professor Xavier, a researcher at a nearby institution who just published a cutting-edge paper in{' '}
+      <em>Nature Neuroscience</em> on novel techniques to conduct this research.
+    </div>
+  );
+}
+
+// TODO: Replace with NavigationFooterV2
+function NavBar({ onPrev, onNext, canNext, showPrev, showNext = true, canPrev, nextLabel, disabledMsg }) {
+  const [showTip, setShowTip] = useState(false);
+  return (
+    <div style={{
+      position: 'fixed', bottom: 0, left: 0, right: 0,
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      padding: '12px 32px',
+      backgroundColor: C.white,
+      borderTop: `1px solid ${C.border}`,
+      boxShadow: '0 -2px 10px rgba(0,0,0,0.08)',
+      zIndex: 1000,
+    }}>
+      {showPrev
+        ? <StyledButton variant="secondary" onClick={onPrev} disabled={!canPrev}>PREVIOUS</StyledButton>
+        : <div />
+      }
+      {showNext ? (
+        <div
+          style={{ position: 'relative' }}
+          onMouseEnter={() => !canNext && setShowTip(true)}
+          onMouseLeave={() => setShowTip(false)}
+        >
+          {showTip && !canNext && (
+            <div style={{
+              position: 'absolute', bottom: 'calc(100% + 8px)', right: 0,
+              backgroundColor: 'rgba(20,20,20,0.9)', color: C.white,
+              padding: '8px 12px', borderRadius: 6,
+              fontSize: '0.8rem', fontWeight: 500,
+              whiteSpace: 'nowrap', zIndex: 10,
+            }}>
+              {disabledMsg}
+            </div>
+          )}
+          <StyledButton variant="primary" onClick={canNext ? onNext : undefined} disabled={!canNext}>
+            {nextLabel}
+          </StyledButton>
+        </div>
+      ) : <div />}
+    </div>
+  );
+}
+
+// --- Congrats Screen (Page 1 of 2 final screens) ---
+function CongratsScreen({ choices }) {
+  // Build student's completed email segments
+  const studentSegments = [1, 2, 3, 4].map(step => {
+    const choiceId = choices[step];
+    const stepDef = STEP_OPTIONS[step];
+    if (!choiceId) return null;
+    const opt = stepDef.options.find(o => o.id === choiceId);
+    if (!opt) return null;
+    return { text: opt.emailText, section: stepDef.label, styles: opt.styles };
+  }).filter(Boolean);
+
+  // Style tally
+  const allStyles = studentSegments.flatMap(s => s.styles || []);
+  const styleCounts = {};
+  allStyles.forEach(s => { styleCounts[s] = (styleCounts[s] || 0) + 1; });
+  const topStyles = Object.entries(styleCounts).sort((a, b) => b[1] - a[1]).slice(0, 2).map(e => e[0]);
+
+  return (
+    <div style={{
+      maxWidth: 1100,
+      margin: '0 auto',
+      padding: '40px 24px 100px',
+      fontFamily: '"Helvetica Neue", Arial, sans-serif',
+    }}>
+
+      {/* Header — no "Activity Complete" title */}
+      <div style={{
+        backgroundColor: C.blueLight,
+        borderLeft: `4px solid ${C.blue}`,
+        borderRadius: 4,
+        padding: 16,
+        marginBottom: 16,
+      }}>
+        <p style={{ margin: 0, fontSize: '1rem', fontWeight: 500, color: C.dark, lineHeight: 1.7 }}>
+          You built an email to Professor Xavier by making four style choices. Below, compare your email against a fully indirect and conversational version built from the same options you saw. On the next page, you will find guidance on effective academic outreach and a space to write your own version.
+        </p>
+        {topStyles.length > 0 && (
+          <div style={{ marginTop: 10, display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: C.dark }}>Your dominant styles:</span>
+            {topStyles.map(s => <StyleBadge key={s} label={s} />)}
+          </div>
+        )}
+      </div>
+
+      {/* Email comparison */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, alignItems: 'start', marginBottom: 24 }}>
+        <div>
+          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: C.dark, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+            Your Email
+          </div>
+          <div style={{ backgroundColor: C.white, border: `1px solid ${C.border}`, borderRadius: 8, padding: 20 }}>
+            <EmailHeader />
+            <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 16 }}>
+              <EmailBody segments={studentSegments} />
+            </div>
+            <div style={{ marginTop: 12, fontSize: '0.75rem', fontWeight: 500, color: C.mid }}>
+              Hover over underlined text to identify each section.
+            </div>
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: C.dark, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+            Indirect + Conversational Version
+          </div>
+          <div style={{ backgroundColor: C.white, border: `1px solid ${C.border}`, borderRadius: 8, padding: 20 }}>
+            <EmailHeader />
+            <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 16 }}>
+              <EmailBody segments={REFERENCE_EMAIL_SEGMENTS} />
+            </div>
+            <div style={{ marginTop: 12, fontSize: '0.75rem', fontWeight: 500, color: C.mid }}>
+              Hover over underlined text to identify each section.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Why indirect/conversational falls short */}
+      <div style={{ backgroundColor: C.white, border: `1px solid ${C.border}`, borderRadius: 8, padding: 20 }}>
+        <div style={{ fontSize: '1.1rem', fontWeight: 700, color: C.black, marginBottom: 14 }}>
+          Why the indirect and conversational approach falls short
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {[
+            { label: 'The request gets buried.', text: 'A fully indirect email spends most of its length on pleasantries and context before arriving at the ask. A busy researcher may not read far enough to find it.' },
+            { label: 'Hedged language reduces clarity.', text: '"I would absolutely love the chance to sit down sometime" does not tell the reader what you want, when, or for how long. That ambiguity adds a round of back-and-forth.' },
+            { label: 'Enthusiasm can read as inexperience.', text: 'Phrases like "incredibly valuable to me" are well-intentioned, but in a professional cold email they can signal that you have not yet calibrated your register to the audience.' },
+            { label: 'Vague availability creates scheduling friction.', text: '"Any time that works for you works for me" places all logistical work on the recipient. A specific time zone or availability window, even a broad one, is more helpful.' },
+          ].map((item, i) => (
+            <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: C.accent, flexShrink: 0, marginTop: 8 }} />
+              <div style={{ fontSize: '0.9rem', lineHeight: 1.6 }}>
+                <span style={{ fontWeight: 700, color: C.black }}>{item.label} </span>
+                <span style={{ fontWeight: 500, color: C.dark }}>{item.text}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- Reflection Screen (Page 2 of 2 final screens) ---
+function ReflectionScreen({ choices }) {
+  const [draftText, setDraftText] = useState('');
+  const [followUpText, setFollowUpText] = useState('');
+  const [examplesVisible, setExamplesVisible] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [followUpCopied, setFollowUpCopied] = useState(false);
+  const [hasSent, setHasSent] = useState(false);
+  const [hasSentFollowUp, setHasSentFollowUp] = useState(false);
+
+  // Rebuild student segments for style summary
+  const studentSegments = [1, 2, 3, 4].map(step => {
+    const choiceId = choices[step];
+    const stepDef = STEP_OPTIONS[step];
+    if (!choiceId) return null;
+    const opt = stepDef.options.find(o => o.id === choiceId);
+    if (!opt) return null;
+    return { text: opt.emailText, section: stepDef.label, styles: opt.styles };
+  }).filter(Boolean);
+
+  const allStyles = studentSegments.flatMap(s => s.styles || []);
+  const styleCounts = {};
+  allStyles.forEach(s => { styleCounts[s] = (styleCounts[s] || 0) + 1; });
+  const topStyles = Object.entries(styleCounts).sort((a, b) => b[1] - a[1]).slice(0, 2).map(e => e[0]);
+
+  const formalCount = styleCounts['Formal'] || 0;
+  const convCount   = styleCounts['Conversational'] || 0;
+  const directCount = styleCounts['Direct'] || 0;
+  const indirCount  = styleCounts['Indirect'] || 0;
+  const isMixed = formalCount === convCount || directCount === indirCount;
+
+  // When mixed, show every style tag that appeared; otherwise show top 2
+  const displayStyles = isMixed
+    ? Object.keys(styleCounts).sort()
+    : topStyles;
+
+  const styleDesc = (() => {
+    if (isMixed) return 'Your choices incorporated a mixture of writing styles. This approach can sometimes be the mark of a strong writer. Proceed with caution! Mixing styles in brief communications can confuse readers.';
+    const isForml  = formalCount > convCount;
+    const isDirect = directCount > indirCount;
+    if (isForml && isDirect)  return 'Your choices leaned formal and direct. This is a professional register that gives clear action items. A formal and direct email must be adapted to its recipient via specific details or will sound impersonal or like a bulk message.';
+    if (!isForml && isDirect) return 'Your choices leaned conversational and direct. This is a warm, clear register that allows you to express some personality. In initial emails, watch out for markers of unprofessionalism like incomplete sentences, poor grammar, or slang.';
+    if (isForml && !isDirect) return 'Your choices leaned formal and indirect. Some audiences expect a degree of deference that would make this an appropriate choice, but indirect communications put too much work on the audience to figure out what you want.';
+    return 'Your choices leaned conversational and indirect. This approach comes off as warm and friendly, but it leaves a lot to be desired when it comes to telling your recipient what you actually want. Review the guidance below before writing your own version.';
+  })();
+
+  const EXAMPLE_A = [
+    { text: 'Dear Professor Xavier,', section: 'Greeting' },
+    { text: 'I am writing regarding your recent publication in Nature Neuroscience on cerebral organoid techniques.', section: 'Reason for Contact' },
+    { text: 'I would like to request a 30-minute meeting at your convenience to discuss the methodology described in your paper.', section: 'The Ask' },
+    { text: 'I am available Monday through Friday, 9am–5pm PT, and am happy to accommodate your schedule.', section: 'Availability' },
+  ];
+
+  const EXAMPLE_B = [
+    { text: 'Hi Professor Xavier,', section: 'Greeting' },
+    { text: "I came across your recent Nature Neuroscience paper on cerebral organoids and found it directly relevant to my dissertation work on Alzheimer's pharmacology.", section: 'Reason for Contact' },
+    { text: 'Would you be open to a brief meeting to talk through the methodology of the paper?', section: 'The Ask' },
+    { text: "I'm flexible on timing and am happy to meet in person or over video call, whatever works best for you.", section: 'Availability' },
+  ];
+
+  return (
+    <div style={{
+      maxWidth: 900,
+      margin: '0 auto',
+      padding: '40px 24px 100px',
+      fontFamily: '"Helvetica Neue", Arial, sans-serif',
+    }}>
+
+      {/* Style acknowledgment */}
+      <div style={{
+        backgroundColor: C.blueLight,
+        borderLeft: `4px solid ${C.blue}`,
+        borderRadius: 4,
+        padding: 16,
+        marginBottom: 24,
+      }}>
+        <div style={{ fontSize: '1.2rem', fontWeight: 700, color: C.black, marginBottom: 8 }}>
+          Reflecting on your choices
+        </div>
+        {displayStyles.length > 0 && (
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center', marginBottom: 10 }}>
+            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: C.dark }}>
+              {isMixed ? 'Your styles:' : 'Your dominant styles:'}
+            </span>
+            {displayStyles.map(s => <StyleBadge key={s} label={s} />)}
+          </div>
+        )}
+        <p style={{ margin: 0, fontSize: '1rem', fontWeight: 500, color: C.dark, lineHeight: 1.7 }}>
+          {styleDesc}
+        </p>
+        <p style={{ margin: '10px 0 0', fontSize: '1rem', fontWeight: 500, color: C.dark, lineHeight: 1.7 }}>
+          Use the guidance below to write your own version. There is no single correct email — the goal is a message that is clear, appropriately pitched, and easy for the recipient to act on.
+        </p>
+      </div>
+
+      {/* Guidance */}
+      <div style={{ backgroundColor: C.white, border: `1px solid ${C.border}`, borderRadius: 8, padding: 20, marginBottom: 24 }}>
+        <div style={{ fontSize: '1.1rem', fontWeight: 700, color: C.black, marginBottom: 6 }}>
+          What tends to work in academic cold outreach
+        </div>
+        <div style={{
+          display: 'inline-block',
+          backgroundColor: '#FFF7ED',
+          border: '1px solid #FED7AA',
+          borderRadius: 6,
+          padding: '6px 12px',
+          fontSize: '0.78rem',
+          fontWeight: 600,
+          color: '#9A3412',
+          marginBottom: 14,
+        }}>
+          Placeholder — citations and published guidance to be added by the curriculum team
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {[
+            { label: 'Lead with the reason, not yourself.', text: 'State why you are writing in the first sentence. The recipient can look you up; what they cannot infer is your purpose.' },
+            { label: 'Name the specific work.', text: 'Citing the exact paper title or journal signals that you read it, not just the abstract. It also confirms you have the right person.' },
+            { label: 'Make one clear ask.', text: 'A single, specific request — a 30-minute meeting, a call, a question — is far easier to respond to than an open-ended expression of interest.' },
+            { label: 'Give a logistical foothold.', text: 'Mentioning your time zone or a rough availability window removes one step from the scheduling process. You are not demanding a slot; you are making it easier to find one.' },
+            { label: 'Match the register of your audience.', text: 'Academic culture varies by field and institution. When in doubt, err toward formal. It is easier to relax your tone in a follow-up than to recover from an overly casual opener.' },
+          ].map((item, i) => (
+            <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: C.blue, flexShrink: 0, marginTop: 8 }} />
+              <div style={{ fontSize: '0.9rem', lineHeight: 1.6 }}>
+                <span style={{ fontWeight: 700, color: C.black }}>{item.label} </span>
+                <span style={{ fontWeight: 500, color: C.dark }}>{item.text}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Free-write */}
+      <div style={{ backgroundColor: C.white, border: `1px solid ${C.border}`, borderRadius: 8, padding: 20, marginBottom: 24 }}>
+        {/* Header row with Optional badge */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+          <div style={{ fontSize: '1.1rem', fontWeight: 700, color: C.black }}>
+            Write and send your own email
+          </div>
+          <span style={{
+            display: 'inline-block',
+            padding: '2px 10px',
+            borderRadius: 4,
+            fontSize: '0.72rem',
+            fontWeight: 700,
+            backgroundColor: C.light,
+            color: C.mid,
+            border: `1px solid ${C.border}`,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+          }}>
+            Optional
+          </span>
+        </div>
+
+        <div style={{ fontSize: '0.9rem', fontWeight: 500, color: C.dark, lineHeight: 1.7, marginBottom: 16 }}>
+          Is there an email you have been meaning to write? Use this space to draft it now. Fill in the template below with your own details, copy it, and send it. The guidance above applies just as well to a real email as it does to this exercise.
+        </div>
+
+        <textarea
+          value={draftText}
+          onChange={e => setDraftText(e.target.value)}
+          style={{
+            width: '100%',
+            minHeight: 240,
+            padding: 14,
+            fontSize: '1rem',
+            fontFamily: 'Georgia, "Times New Roman", serif',
+            lineHeight: 1.8,
+            color: C.black,
+            border: `1px solid ${C.border}`,
+            borderRadius: 6,
+            resize: 'vertical',
+            outline: 'none',
+            boxSizing: 'border-box',
+            backgroundColor: C.light,
+          }}
+          onFocus={e => e.target.style.borderColor = C.accent}
+          onBlur={e => e.target.style.borderColor = C.border}
+          defaultValue={[
+            'Dear [Recipient name],',
+            '',
+            '[State why you are writing and name the specific paper or work.]',
+            '',
+            '[Make your ask — meeting, call, or question — in one sentence.]',
+            '',
+            '[State your availability or time zone.]',
+            '',
+            'Warmly,',
+            '[Your name]',
+            '[Your program or institution]',
+          ].join('\n')}
+        />
+
+        {/* Action row: copy + sent checkbox */}
+        <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+          {/* Sent checkbox */}
+          <label style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            cursor: 'pointer', fontSize: '0.9rem', fontWeight: 500, color: C.dark,
+          }}>
+            <input
+              type="checkbox"
+              checked={hasSent}
+              onChange={e => setHasSent(e.target.checked)}
+              style={{ width: 16, height: 16, accentColor: C.accent, cursor: 'pointer' }}
+            />
+            {hasSent ? 'Sent! Nice work.' : 'I sent this email'}
+          </label>
+
+          <div style={{ display: 'flex', gap: 10 }}>
+            <StyledButton
+              variant="secondary"
+              onClick={() => {
+                navigator.clipboard.writeText(draftText).catch(() => {});
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }}
+            >
+              {copied ? 'Copied!' : 'Copy to clipboard'}
+            </StyledButton>
+            <StyledButton
+              variant="primary"
+              onClick={() => setExamplesVisible(true)}
+              disabled={examplesVisible}
+            >
+              {examplesVisible ? 'Examples shown below' : 'Show example emails'}
+            </StyledButton>
+          </div>
+        </div>
+      </div>
+
+      {/* Example emails revealed on click */}
+      {examplesVisible && (
+        <div>
+          <div style={{ fontSize: '1.1rem', fontWeight: 700, color: C.black, marginBottom: 6 }}>
+            Two strong examples
+          </div>
+          <div style={{ fontSize: '0.9rem', fontWeight: 500, color: C.dark, lineHeight: 1.6, marginBottom: 16 }}>
+            Both emails are effective. The first is formal and direct; the second is conversational and direct. Notice that both lead with purpose, name the paper, make a specific ask, and provide logistical information. They differ in tone, not in structure.
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            <div>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: C.dark, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+                Example A — Formal + Direct
+              </div>
+              <div style={{ backgroundColor: C.white, border: `1px solid ${C.border}`, borderRadius: 8, padding: 20 }}>
+                <EmailHeader />
+                <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 16 }}>
+                  <EmailBody segments={EXAMPLE_A} />
+                </div>
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: C.dark, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+                Example B — Conversational + Direct
+              </div>
+              <div style={{ backgroundColor: C.white, border: `1px solid ${C.border}`, borderRadius: 8, padding: 20 }}>
+                <EmailHeader />
+                <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 16 }}>
+                  <EmailBody segments={EXAMPLE_B} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Follow-up template */}
+      <div style={{ backgroundColor: C.white, border: `1px solid ${C.border}`, borderRadius: 8, padding: 20, marginTop: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+          <div style={{ fontSize: '1.1rem', fontWeight: 700, color: C.black }}>
+            Draft a follow-up
+          </div>
+          <span style={{
+            display: 'inline-block',
+            padding: '2px 10px',
+            borderRadius: 4,
+            fontSize: '0.72rem',
+            fontWeight: 700,
+            backgroundColor: C.light,
+            color: C.mid,
+            border: `1px solid ${C.border}`,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+          }}>
+            Optional
+          </span>
+        </div>
+
+        <div style={{ fontSize: '0.9rem', fontWeight: 500, color: C.dark, lineHeight: 1.7, marginBottom: 16 }}>
+          If you do not hear back within one to two weeks, a single short follow-up is appropriate and expected in academic contexts. It is not rude to follow up — most researchers receive a high volume of email and a brief, polite nudge is a normal part of professional correspondence. The follow-up should be even shorter than your original message: reference your prior email, restate your ask in one sentence, and make it easy to say yes.
+        </div>
+
+        <textarea
+          value={followUpText}
+          onChange={e => setFollowUpText(e.target.value)}
+          style={{
+            width: '100%',
+            minHeight: 180,
+            padding: 14,
+            fontSize: '1rem',
+            fontFamily: 'Georgia, "Times New Roman", serif',
+            lineHeight: 1.8,
+            color: C.black,
+            border: `1px solid ${C.border}`,
+            borderRadius: 6,
+            resize: 'vertical',
+            outline: 'none',
+            boxSizing: 'border-box',
+            backgroundColor: C.light,
+          }}
+          onFocus={e => e.target.style.borderColor = C.accent}
+          onBlur={e => e.target.style.borderColor = C.border}
+          defaultValue={[
+            'Dear [Recipient name],',
+            '',
+            'I wanted to follow up on my email from [date or "last week"]. I am still very interested in [restate your ask in one sentence].',
+            '',
+            'I understand you have a full schedule and am happy to work around your availability.',
+            '',
+            'Warmly,',
+            '[Your name]',
+          ].join('\n')}
+        />
+
+        <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+          <label style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            cursor: 'pointer', fontSize: '0.9rem', fontWeight: 500, color: C.dark,
+          }}>
+            <input
+              type="checkbox"
+              checked={hasSentFollowUp}
+              onChange={e => setHasSentFollowUp(e.target.checked)}
+              style={{ width: 16, height: 16, accentColor: C.accent, cursor: 'pointer' }}
+            />
+            {hasSentFollowUp ? 'Sent! Nice work.' : 'I sent this follow-up'}
+          </label>
+
+          <StyledButton
+            variant="secondary"
+            onClick={() => {
+              navigator.clipboard.writeText(followUpText).catch(() => {});
+              setFollowUpCopied(true);
+              setTimeout(() => setFollowUpCopied(false), 2000);
+            }}
+          >
+            {followUpCopied ? 'Copied!' : 'Copy to clipboard'}
+          </StyledButton>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- Step Screen (two-column layout) ---
+function StepScreen({ stepNumber, choices, onChoose }) {
+  const step = STEP_OPTIONS[stepNumber];
+  const choice = choices[stepNumber];
+  const selectedOption = step.options.find(o => o.id === choice);
+
+  // Build email segments from all completed steps up to and including this one
+  const segments = [];
+  for (let s = 1; s <= stepNumber; s++) {
+    const c = choices[s];
+    const stepDef = STEP_OPTIONS[s];
+    if (c) {
+      const opt = stepDef.options.find(o => o.id === c);
+      if (opt) segments.push({ text: opt.emailText, section: stepDef.label });
+    }
+  }
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 24, alignItems: 'start' }}>
+      {/* Left: instruction + options + feedback */}
+      <div>
+        <InstructionCard
+          title={`Step ${stepNumber} of 4: ${step.label}`}
+          subtitle={step.instruction}
+        />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {step.options.map(opt => (
+            <OptionCard
+              key={opt.id}
+              option={opt}
+              selected={choice}
+              onSelect={(id) => onChoose(stepNumber, id)}
+            />
+          ))}
+        </div>
+        {selectedOption && <FeedbackCard option={selectedOption} />}
+      </div>
+
+      {/* Right: sticky email preview */}
+      <EmailPreviewPanel segments={segments} />
+    </div>
+  );
+}
+
+// --- Main App ---
+export default function EmailActivityApp() {
+  const [currentScreen, setCurrentScreen] = useState(1);
+  const [choices, setChoices] = useState({ 1: null, 2: null, 3: null, 4: null });
+
+  const TOTAL_SCREENS = 5; // intro + 4 steps
+
+  function handleChoose(step, optionId) {
+    setChoices(prev => ({ ...prev, [step]: optionId }));
+  }
+
+  function canProceed() {
+    if (currentScreen === 1) return true;
+    const stepToCheck = currentScreen - 1;
+    if (stepToCheck >= 1 && stepToCheck <= 4) {
+      return choices[stepToCheck] !== null;
+    }
+    return true;
+  }
+
+  const isCongrats = currentScreen === 'congrats';
+  const isReflection = currentScreen === 'reflection';
+
+  const nextLabel = currentScreen === TOTAL_SCREENS ? 'COMPLETE ACTIVITY' : 'NEXT';
+
+  const disabledMsg = (() => {
+    if (typeof currentScreen !== 'number') return '';
+    const step = currentScreen - 1;
+    if (step >= 1 && step <= 4) return `Choose an option for Step ${step} to continue`;
+    return 'Complete this step to continue';
+  })();
+
+  function goNext() {
+    if (currentScreen === TOTAL_SCREENS) setCurrentScreen('congrats');
+    else if (currentScreen === 'congrats') setCurrentScreen('reflection');
+    else if (typeof currentScreen === 'number') setCurrentScreen(s => s + 1);
+  }
+
+  function goPrev() {
+    if (currentScreen === 'reflection') setCurrentScreen('congrats');
+    else if (currentScreen === 'congrats') setCurrentScreen(TOTAL_SCREENS);
+    else if (typeof currentScreen === 'number' && currentScreen > 1) setCurrentScreen(s => s - 1);
+  }
+
+  // Congrats screen
+  if (isCongrats) {
+    return (
+      <>
+        <CongratsScreen choices={choices} />
+        <NavBar
+          onPrev={goPrev}
+          onNext={goNext}
+          canNext={true}
+          showPrev={true}
+          canPrev={true}
+          nextLabel="NEXT"
+          disabledMsg=""
+        />
+      </>
+    );
+  }
+
+  // Reflection screen
+  if (isReflection) {
+    return (
+      <>
+        <ReflectionScreen choices={choices} />
+        <NavBar
+          onPrev={goPrev}
+          onNext={() => {}}
+          canNext={false}
+          showPrev={true}
+          showNext={false}
+          canPrev={true}
+          nextLabel="NEXT"
+          disabledMsg=""
+        />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <div style={{
+        maxWidth: currentScreen >= 2 ? 1100 : 800,
+        margin: '0 auto',
+        padding: '24px 24px 100px',
+        fontFamily: '"Helvetica Neue", Arial, sans-serif',
+        minHeight: '100vh',
+      }}>
+        <ProgressBar current={currentScreen} total={TOTAL_SCREENS} />
+
+        {/* Screen 1: Introduction */}
+        {currentScreen === 1 && (
+          <>
+            <InstructionCard title="Your Research Scenario">
+              <p style={{ margin: 0, fontSize: '1rem', fontWeight: 500, color: C.dark, lineHeight: 1.7 }}>
+                You are working on a project on the development of cerebral organoids to study pharmacological treatments for Alzheimer's disease. You want to meet with Professor Xavier, a researcher at a nearby institution who just published a cutting-edge paper in <em>Nature Neuroscience</em> on novel techniques to conduct this research. Review the options below to build an effective email to set up a meeting with Professor Xavier to deepen your understanding of this technique.
+              </p>
+            </InstructionCard>
+
+            <div style={{
+              backgroundColor: C.white,
+              border: `1px solid ${C.border}`,
+              borderRadius: 8,
+              padding: 20,
+            }}>
+              <div style={{ fontSize: '1.2rem', fontWeight: 700, color: C.black, marginBottom: 10 }}>
+                How this works
+              </div>
+              <div style={{ fontSize: '1rem', fontWeight: 500, color: C.dark, lineHeight: 1.7, marginBottom: 16 }}>
+                You will build your email one section at a time. At each step, choose from four options that reflect different communication styles. After each choice, you will see your email take shape and receive feedback on the strengths and trade-offs of that choice. You can go back and change any selection before moving on.
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {['Step 1: Greeting', 'Step 2: Reason for Contact', 'Step 3: The Ask', 'Step 4: Availability'].map((step, i) => (
+                  <div key={i} style={{
+                    backgroundColor: C.light,
+                    borderRadius: 6,
+                    padding: '10px 14px',
+                    fontSize: '0.9rem',
+                    fontWeight: 600,
+                    color: C.dark,
+                    border: `1px solid ${C.border}`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                  }}>
+                    <span style={{
+                      width: 24, height: 24, borderRadius: '50%',
+                      backgroundColor: C.accent, color: C.white,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '0.75rem', fontWeight: 700, flexShrink: 0,
+                    }}>{i + 1}</span>
+                    {step.replace(`Step ${i + 1}: `, '')}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Screens 2–5: Steps 1–4 */}
+        {currentScreen >= 2 && currentScreen <= 5 && (
+          <>
+            <ContextBanner />
+            <StepScreen
+              stepNumber={currentScreen - 1}
+              choices={choices}
+              onChoose={handleChoose}
+            />
+          </>
+        )}
+      </div>
+
+      <NavBar
+        onPrev={goPrev}
+        onNext={goNext}
+        canNext={canProceed()}
+        showPrev={currentScreen > 1}
+        canPrev={true}
+        nextLabel={nextLabel}
+        disabledMsg={disabledMsg}
+      />
+    </>
+  );
+}
