@@ -4,10 +4,13 @@
 [Research Tools Quiz](https://c4r-io.github.io/duq_lit-activities/research-tools-quiz.html)
 
 ## Lesson 2
-[Explore prompting an LLM](https://c4r-io.github.io/duq_lit-activities/prompt-adjustment.html)
+[Write an outreach email](https://github.com/c4r-io/duq_lit-activities/blob/main/duq_lit_02%20Write%20an%20outreach%20email.html)
 
 ## Lesson 3 
 [Build a PubMed Search Strategy](https://c4r-io.github.io/duq_lit-activities/boolean-search-builder.html)
 
 ## Lesson 4
 [Screening Search Results for Relevance](https://c4r-io.github.io/duq_lit-activities/literature-search-evaluation.html)
+
+## Lesson 5
+[Explore prompting an LLM](https://c4r-io.github.io/duq_lit-activities/prompt-adjustment.html)
