@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Building a Knowledge Map — Lesson 2A</title>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; background: #F3F3F3; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #202020; }
+  #root { min-height: 100vh; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useRef, useEffect } = React;
+
+/**
+ * Lesson 2A Activity — "Building a Knowledge Map" (TABLE / MATRIX MODEL)
+ * TME (Theory–Method–Evidence) evidence-evaluation activity.
+ *
+ * MODEL: the theory is a TABLE.
+ *   - ROWS    = sub-propositions of the theory (things that must hold for the claim).
+ *   - COLUMNS = papers (each paper bundles a Method + Evidence, shown in a side panel).
+ *   - CELLS   = the learner's judgment of how that paper's evidence bears on that
+ *               proposition: consistent / inconsistent / doesn't address (or untouched).
+ * A proposition's "state" is a row read left-to-right: how accumulated evidence across
+ * papers bears on it. Evidence ACCUMULATES by adding columns; the theory GROWS by adding
+ * rows — and a new row arrives with empty cells under every existing paper, which the
+ * learner must then judge ("a new claim isn't free").
+ *
+ * Self-contained React artifact. Inline styles only (MUI cannot load in artifacts).
+ * Dev team replaces inline components with C4R shared MUI components; the matrix +
+ * cell-popover + side panel can map onto a shared data-grid / drawer if one exists.
+ *
+ * Flow (6 screens incl. Congrats):
+ *   1. Intro — what a knowledge map is; the scientific theory to be mapped.
+ *   2. Judge the first study against each claim; submit to check answers (must correct to continue).
+ *   3. Add a second study (a new column); judge it; submit to check.
+ *   4. Add your own claim (a new row); judge it against both studies; say why it matters.
+ *   5. Pick which of several peers' claims is most interesting to pursue.
+ *   6. Congrats.
+ *
+ * Data model (saved per learner):
+ *   {
+ *     cell_judgments: { "fatigue|P1": "refutes", "interference|P2": "consistent", ... },
+ *     proposed_claim_text,                  // the new row label
+ *     proposed_cells: { P1: "...", P2: "..." },
+ *     proposed_importance,                  // why the learner's claim matters
+ *     peer_pick,                            // id of the peer claim chosen as most interesting to pursue
+ *     timestamp, learner_id
+ *   }
+ */
+
+
+// ============================================================================
+// COLORS  (TODO: DEV - replace with useAppColors() / useGrayscale())
+// ============================================================================
+const PRIMARY = {
+  darkPink: '#FF00FF', purple: '#6F00FF', blue: '#0082FF',
+  green: '#0CC800', yellow: '#FFC800', brightOrange: '#FF5A00',
+};
+const NEUTRAL = {
+  black: '#202020', darkGray: '#333132', accessibleGray: '#757575',
+  midGray: '#999999', intDarkGray: '#A2A2A2', intMidGray: '#C4C4C4',
+  intLightGray: '#E0E0E0', lightGray: '#F3F3F3', white: '#FFFFFF',
+};
+
+// ============================================================================
+// TYPOGRAPHY
+// ============================================================================
+const TEXT = {
+  title:      { fontSize: '1.2rem', fontWeight: 700, color: NEUTRAL.black, margin: 0 },
+  heading:    { fontSize: '1.2rem', fontWeight: 700, color: NEUTRAL.black, margin: 0 },
+  subheading: { fontSize: '1.2rem', fontWeight: 300, color: NEUTRAL.black, margin: 0 },
+  text:       { fontSize: '1.0rem', fontWeight: 500, color: NEUTRAL.darkGray, lineHeight: 1.5, margin: 0 },
+  textLight:  { fontSize: '1.0rem', fontWeight: 300, color: NEUTRAL.darkGray, lineHeight: 1.5, margin: 0 },
+  caption:    { fontSize: '0.8rem', fontWeight: 500, color: NEUTRAL.darkGray, lineHeight: 1.5, margin: 0 },
+};
+const MONO = '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace';
+
+// ============================================================================
+// CONTENT — fixed (railroaded)
+// ============================================================================
+
+const THEORY = { claim: 'Sleep deprivation impairs memory.' };
+
+// Theory sub-propositions = table ROWS. Plain-language labels; richer `detail`
+// shown on the row (hover) and when a cell popover is open.
+const PROPOSITIONS = [
+  {
+    id: 'fatigue',
+    label: 'The memory difference goes away once the sleep-deprived group is rested before the test',
+    ifThen: 'If the difference is only tiredness at the test, then letting the sleep-deprived group rest first should erase it.',
+  },
+  {
+    id: 'timing',
+    label: 'The memory difference holds even when both groups learn and are tested at the same time of day',
+    ifThen: 'If the difference is not due to circadian rhythms influencing memory test performance, then it should still appear when both groups learn and are tested at the same time of day.',
+  },
+  {
+    id: 'interference',
+    label: 'Sleep specifically protects memory against later interference',
+    ifThen: 'If sleep actively protects the memory, then sleep should make it more resistant to new, competing information learned afterward.',
+  },
+];
+
+// Papers = table COLUMNS. Method + Evidence shown in the side reference panel.
+// `revealedAt` controls when a column appears (screen index).
+const PAPERS = [
+  {
+    id: 'P1',
+    short: 'Gais, Lucas & Born (2006)',
+    title: 'Sleep transforms the cerebral trace of declarative memories',
+    citation: 'Learning & Memory, 2006',
+    method: 'People learned German vocabulary at 8pm. One group then slept normally; the other was kept awake all night. Both were tested 48 hours later, after everyone had caught up on sleep.',
+    evidence: 'The group that slept the first night remembered noticeably more vocabulary at the 48-hour test than the group kept awake.',
+    revealedAt: 1,
+  },
+  {
+    id: 'P2',
+    short: 'Ellenbogen, Hulbert, Jiang & Stickgold (2009)',
+    title: "The Sleeping Brain's Influence on Verbal Memory: Boosting Resistance to Interference",
+    citation: 'PLoS ONE, 2009',
+    method: 'People learned a set of word pairs, then either slept or stayed awake for 12 hours — a comparison of sleep against staying awake, not a full night of lost sleep. Right before the test, half learned a second, competing set of pairs designed to scramble the first — a direct test of whether sleep protects memories against interference.',
+    evidence: 'Sleep beat staying awake even with no competing words (81% vs 65%), and the sleep advantage grew larger when competing words were added (71% vs 44%). Sleep did not just protect the memory — it made it more resistant to interference. The two groups learned equally well to begin with, so the difference was not down to one group being tested at a better time of day.',
+    revealedAt: 3,
+  },
+];
+
+// Three-value cell scale. The asymmetry is deliberate: a study can REFUTE a claim
+// (evidence points against it) but can only ever be CONSISTENT WITH one (evidence
+// fits — which is weaker than proof). "Doesn't address" is the silent case: the
+// design bears on the claim neither for nor against.
+const VERDICTS = [
+  { key: 'consistent',   label: 'Consistent with',  short: 'Consistent',   color: PRIMARY.green,      glyph: '✓', hint: 'The evidence fits this claim and points toward it — but fitting is weaker than proof.' },
+  { key: 'refutes',      label: 'Refutes',           short: 'Refutes',      color: '#ef4444',          glyph: '✕', hint: 'The evidence points against this claim — it is the kind of result you would see if the claim were false.' },
+  { key: 'no_bearing',   label: "Doesn't address",   short: "Doesn't address", color: NEUTRAL.intDarkGray, glyph: '–', hint: 'This paper is silent on the claim — its design gives no evidence either for or against it.' },
+];
+const VERDICT_LOOKUP = VERDICTS.reduce((a, v) => { a[v.key] = v; return a; }, {});
+
+// Designed/expert judgments for each (proposition, paper) cell + a short rationale.
+// null = expert says "doesn't address" is the right read.
+const EXPERT_CELLS = {
+  'fatigue|P1':       { verdict: 'refutes',    why: 'This refutes the fatigue explanation. Both groups were tested only after catching up on sleep, yet the sleep-deprived group still remembered less — so the difference was not just tiredness at the test. Resting them did not erase it.' },
+  'timing|P1':        { verdict: 'consistent', why: 'The design held time of day steady across groups, so the difference cannot be attributed to circadian rhythms — consistent with a genuine effect of sleep.' },
+  'interference|P1':  { verdict: 'no_bearing', why: 'This study never adds competing material after learning, so it cannot say whether sleep specifically protects against interference. It is silent on this prediction.' },
+  'fatigue|P2':       { verdict: 'no_bearing', why: 'This study compared sleeping against staying awake, with no full night of lost sleep, so it does not test whether a lost-sleep difference is tiredness or memory. Silent on the fatigue prediction.' },
+  'timing|P2':        { verdict: 'consistent', why: 'This study checked timing directly: the sleep and wake groups learned the words equally well to begin with, so the later difference cannot be attributed to circadian rhythms affecting one group at test. Consistent with a genuine effect of sleep.' },
+  'interference|P2':  { verdict: 'consistent', why: 'The key cell. Sleep helped more when competing material was added, and made the memory more resistant to it — exactly what a protect-against-interference account predicts, and what a passive "quiet break" account would not.' },
+};
+
+// Seeded peer claims for the final step. Pre-written so there is always a
+// concrete set to choose among. Each shows a claim a peer added and why they
+// think it matters — mirroring what the learner just did. (TODO: DEV - in
+// production these may be drawn from a real peer pool; keep these as the seeded
+// fallback so the step is never empty.)
+const PEER_RESPONSES = [
+  {
+    id: 'peerA',
+    name: 'Peer A',
+    claim: 'The effect also holds for skill-based learning, not only facts and words.',
+    importance: 'If sleep helps skills too, the theory is much broader than the original studies showed — it would point to one general memory process rather than something specific to facts and words.',
+  },
+  {
+    id: 'peerB',
+    name: 'Peer B',
+    claim: 'The benefit fades if too much time passes before sleep.',
+    importance: 'This would tell us when sleep has to happen to do its work — a practical limit on the effect, and a clue about the mechanism behind it.',
+  },
+  {
+    id: 'peerC',
+    name: 'Peer C',
+    claim: 'The effect is stronger for emotionally charged material than neutral material.',
+    importance: 'If emotion changes how much sleep helps, then sleep is not doing one single thing to all memories — it would tie this theory to how emotion and memory interact.',
+  },
+];
+
+const PEER_PICK_PROMPT = 'Of the claims others added, which do you find most interesting to pursue?';
+
+// Suggestive directions revealed by the "Need an idea?" button on the new-claim
+// step. These are prompts to think with — not options that fill the box — so the
+// claim stays the learner's own. They map to the two general moves: re-test a
+// ruled-out rival in the other study's paradigm, or push a settled claim into a
+// condition neither study covered.
+const CLAIM_HINTS = [
+  'Could a rival one study ruled out come back under harder conditions — for example, chronic or partial sleep loss rather than a single night?',
+  'Could a control that held in one study be checked in the other — for example, does the time-of-day check also hold in an interference design?',
+  'Could a result shown in one design be re-tested in the other — for example, does sleep still protect against interference after a full night of lost sleep, not just a short time awake?',
+  'Could the effect be pushed to material neither study used — skills instead of words, or emotional instead of neutral material?',
+];
+
+const TOTAL_SCREENS = 6; // excludes Congrats
+
+// ============================================================================
+// INLINE COMPONENTS  (TODO: DEV - swap for C4R shared components)
+// ============================================================================
+
+// TODO: Replace with shared PageContainer component
+function PageContainer({ children }) {
+  return <div style={{ maxWidth: 980, margin: '0 auto', padding: '24px 16px 120px' }}>{children}</div>;
+}
+
+// TODO: Replace with shared ProgressBar component
+function ProgressIndicator({ current, total, leftLabel, rightLabel }) {
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+        <span style={TEXT.caption}>{leftLabel}</span>
+        <span style={TEXT.caption}>{rightLabel}</span>
+      </div>
+      <div style={{ display: 'flex', gap: 4 }}>
+        {Array.from({ length: total }).map((_, i) => (
+          <div key={i} style={{ flex: 1, height: 8, borderRadius: 4, backgroundColor: i < current ? PRIMARY.purple : NEUTRAL.intLightGray, transition: 'background-color 400ms ease' }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// TODO: Replace with shared InstructionCard component
+function InstructionCard({ title, children, bg = '#F0F4FF', borderColor = PRIMARY.blue, style = {} }) {
+  return (
+    <div style={{ marginBottom: 16, background: bg, borderLeft: `4px solid ${borderColor}`, borderRadius: 6, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.12)', ...style }}>
+      {title && <h2 style={{ ...TEXT.heading, marginBottom: children ? 8 : 0 }}>{title}</h2>}
+      {children}
+    </div>
+  );
+}
+
+// TODO: Replace with shared StyledButton component
+function StyledButton({ children, onClick, disabled = false, variant = 'primary', selected = false, size = 'default', style = {}, title }) {
+  const [hover, setHover] = useState(false);
+  const variants = {
+    primary:   { bg: NEUTRAL.black,     text: NEUTRAL.white,    border: NEUTRAL.black,     hoverBg: PRIMARY.purple,    hoverText: NEUTRAL.white },
+    secondary: { bg: NEUTRAL.lightGray, text: NEUTRAL.darkGray, border: NEUTRAL.lightGray, hoverBg: NEUTRAL.darkGray,  hoverText: NEUTRAL.white },
+    tertiary:  { bg: NEUTRAL.white,     text: NEUTRAL.black,    border: NEUTRAL.lightGray, hoverBg: NEUTRAL.lightGray, hoverText: NEUTRAL.black },
+  };
+  const v = variants[variant] || variants.primary;
+  const sizePad = size === 'compact' ? '0 16px' : size === 'mini' ? '4px 10px' : '10px 20px';
+  const sizeFont = size === 'mini' ? '0.8rem' : '1rem';
+  const sizeWeight = size === 'default' ? 600 : 400;
+  const showHover = hover && !disabled;
+  return (
+    <button onClick={onClick} disabled={disabled} title={title}
+      onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
+      style={{
+        width: 'fit-content', padding: sizePad, height: size === 'compact' ? 36 : undefined,
+        fontSize: sizeFont, fontWeight: sizeWeight, fontFamily: 'inherit', borderRadius: 8,
+        textTransform: 'none', cursor: disabled ? 'not-allowed' : 'pointer', transition: 'all 0.2s ease',
+        backgroundColor: disabled ? NEUTRAL.midGray : showHover ? v.hoverBg : v.bg,
+        color: disabled ? NEUTRAL.white : showHover ? v.hoverText : v.text,
+        border: selected ? `2px solid ${PRIMARY.purple}` : `2px solid ${disabled ? NEUTRAL.midGray : showHover ? v.hoverBg : v.border}`,
+        boxShadow: disabled ? 'none' : selected ? `inset 0 0 0 2px ${NEUTRAL.white}, 0 2px 8px rgba(111,0,255,0.4)` : showHover ? '0 4px 12px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.15)',
+        transform: (selected || showHover) ? 'scale(1.02)' : 'none', ...style,
+      }}>
+      {children}
+    </button>
+  );
+}
+
+// Dismissible inline alert (transient feedback; never shifts structural layout)
+function InlineAlert({ severity = 'info', children, onClose }) {
+  const colors = {
+    success: { bg: 'rgba(12,200,0,0.10)', border: PRIMARY.green },
+    info:    { bg: 'rgba(0,130,255,0.10)', border: PRIMARY.blue },
+    warning: { bg: 'rgba(255,200,0,0.15)', border: PRIMARY.yellow },
+    error:   { bg: 'rgba(239,68,68,0.10)', border: '#ef4444' },
+  };
+  const c = colors[severity] || colors.info;
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 16, background: c.bg, borderLeft: `4px solid ${c.border}`, borderRadius: 6, padding: '12px 14px' }}>
+      <div style={{ ...TEXT.text, flex: 1 }}>{children}</div>
+      {onClose && <button onClick={onClose} aria-label="Dismiss" style={{ background: 'none', border: 'none', cursor: 'pointer', color: NEUTRAL.accessibleGray, fontSize: '1.1rem', lineHeight: 1, padding: 0 }}>×</button>}
+    </div>
+  );
+}
+
+// TODO: Replace with NavigationFooterV2
+function NavigationBar({ onPrevious, onNext, canGoNext, canGoPrevious, showPrevious, nextLabel, nextDisabledMessage, attract }) {
+  return (
+    <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 32px', background: NEUTRAL.white, borderTop: `1px solid ${NEUTRAL.intLightGray}`, boxShadow: '0 -2px 10px rgba(0,0,0,0.1)', zIndex: 1000 }}>
+      <style>{`
+        @keyframes navAttractPulse { 0%,100% { box-shadow: 0 0 0 2px ${PRIMARY.purple}, 0 0 0 6px rgba(111,0,255,0); } 50% { box-shadow: 0 0 0 2px ${PRIMARY.purple}, 0 0 0 6px rgba(111,0,255,0.4); } }
+      `}</style>
+      {showPrevious ? (
+        <StyledButton variant="secondary" size="compact" onClick={onPrevious} disabled={!canGoPrevious}>← PREVIOUS</StyledButton>
+      ) : <div />}
+      {nextLabel ? (
+        <StyledButton variant="primary" onClick={onNext} disabled={!canGoNext}
+          title={!canGoNext ? nextDisabledMessage : undefined}
+          style={attract ? { animation: 'navAttractPulse 1.6s ease-in-out infinite', backgroundColor: PRIMARY.purple, border: `2px solid ${PRIMARY.purple}` } : {}}>
+          {nextLabel} →
+        </StyledButton>
+      ) : <div />}
+    </div>
+  );
+}
+
+// Small verdict chip (used in cells + legend + comparison)
+function VerdictChip({ verdictKey, size = 'sm' }) {
+  if (!verdictKey) return null;
+  const v = VERDICT_LOOKUP[verdictKey];
+  const pad = size === 'sm' ? '2px 8px' : '3px 10px';
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: pad, borderRadius: 999, background: `${v.color}1A`, border: `1px solid ${v.color}`, color: v.color, fontFamily: MONO, fontSize: '0.72rem', fontWeight: 700, whiteSpace: 'nowrap' }}>
+      <span aria-hidden="true">{v.glyph}</span>{v.short}
+    </span>
+  );
+}
+
+// ============================================================================
+// THE MATRIX
+// TODO: DEV - This table + cell popover + side panel could map onto a shared
+//       data-grid / drawer component if one exists. Cell judgments are local
+//       state keyed "propId|paperId".
+// ============================================================================
+
+function cellKey(propId, paperId) { return `${propId}|${paperId}`; }
+
+function EvidenceMatrix({
+  propositions,        // rows (includes any learner-added row)
+  papers,              // visible columns
+  judgments,           // { "propId|paperId": verdictKey }
+  onSetCell,           // (propId, paperId, verdictKey) => void
+  editablePaperIds,    // which columns accept input this screen
+  highlightPropId,     // optional row to emphasise (e.g. mechanism on reveal)
+  newPropId,           // optional learner-added row id (styled distinctly)
+  feedbackPaperId,     // when set, that column shows expert feedback (verdict + why + mismatch flag)
+  lockedPaperIds = [], // columns that are submitted & settled — render neutral, not purple
+}) {
+  const colW = 230;
+  const labelW = 300;
+
+  return (
+    <div style={{ position: 'relative', overflowX: 'auto', border: `1px solid ${NEUTRAL.intLightGray}`, borderRadius: 8, background: NEUTRAL.white }}>
+      <table style={{ borderCollapse: 'separate', borderSpacing: 0, width: '100%', minWidth: labelW + papers.length * colW }}>
+        <thead>
+          <tr>
+            <th style={{ textAlign: 'left', padding: '12px 14px', width: labelW, minWidth: labelW, borderBottom: `2px solid ${NEUTRAL.intLightGray}`, verticalAlign: 'bottom' }}>
+              <span style={{ ...TEXT.caption, fontFamily: MONO, color: NEUTRAL.accessibleGray }}>THEORY: {THEORY.claim}</span>
+            </th>
+            {papers.map(p => (
+              <th key={p.id} style={{ width: colW, minWidth: colW, borderBottom: `2px solid ${NEUTRAL.intLightGray}`, padding: '10px 8px', textAlign: 'center' }}>
+                <div style={{ ...TEXT.text, fontWeight: 700 }}>{p.short}</div>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {propositions.map((prop) => {
+            const isNew = prop.id === newPropId;
+            const isHi = prop.id === highlightPropId;
+            return (
+              <tr key={prop.id} style={{ background: isHi ? 'rgba(111,0,255,0.04)' : isNew ? 'rgba(255,200,0,0.07)' : 'transparent' }}>
+                <td style={{ padding: '12px 14px', borderBottom: `1px solid ${NEUTRAL.intLightGray}`, verticalAlign: 'top' }}>
+                  <div style={{ ...TEXT.text, fontWeight: 600 }}>{prop.label}</div>
+                  {prop.ifThen && <div style={{ ...TEXT.caption, color: NEUTRAL.accessibleGray, marginTop: 4 }}>{prop.ifThen}</div>}
+                  {isNew && <div style={{ ...TEXT.caption, color: PRIMARY.brightOrange, marginTop: 4 }}>your claim — judge it against every paper</div>}
+                </td>
+                {papers.map(p => {
+                  const key = cellKey(prop.id, p.id);
+                  const verdict = judgments[key];
+                  // Feedback only applies to the feedback column AND the fixed propositions (not the learner row).
+                  const showFeedback = feedbackPaperId === p.id && prop.id !== newPropId;
+                  const expert = showFeedback ? EXPERT_CELLS[key] : null;
+                  const matches = expert && verdict === expert.verdict;
+                  const mismatch = showFeedback && expert && !matches;
+                  // After submit: matching cells lock; mismatching cells stay editable to revise.
+                  // A locked column's fixed-claim cells are never editable again. The
+                  // learner's own row stays editable so it can be judged on the last screen.
+                  const colLocked = lockedPaperIds.includes(p.id);
+                  const editable = showFeedback
+                    ? mismatch
+                    : (editablePaperIds.includes(p.id) && (prop.id === newPropId || !colLocked));
+                  const groupName = `cell-${key}`;
+                  return (
+                    <td key={p.id} style={{
+                      borderBottom: `1px solid ${NEUTRAL.intLightGray}`, borderLeft: `1px solid ${NEUTRAL.lightGray}`,
+                      padding: '8px 10px', verticalAlign: 'top',
+                      background: editable ? NEUTRAL.white : NEUTRAL.lightGray,
+                    }}>
+                      <div role="radiogroup" aria-label={`${p.short}: ${prop.label}`} style={{ display: 'flex', flexDirection: 'column', gap: 4, opacity: editable || verdict ? 1 : 0.55 }}>
+                        {VERDICTS.map(v => {
+                          const checked = verdict === v.key;
+                          // A column in lockedPaperIds is settled (submitted & correct) — its
+                          // selection reads neutral gray and non-interactable, on every screen.
+                          const locked = lockedPaperIds.includes(p.id);
+                          const selColor = locked ? NEUTRAL.accessibleGray : PRIMARY.purple;
+                          return (
+                            <label key={v.key} title={v.hint} style={{
+                              display: 'flex', alignItems: 'center', gap: 7, cursor: editable ? 'pointer' : 'default',
+                              padding: '3px 6px', borderRadius: 6,
+                              border: `1.5px solid ${checked ? selColor : 'transparent'}`,
+                              background: checked ? `${selColor}14` : 'transparent',
+                            }}>
+                              <input
+                                type="radio" name={groupName} value={v.key} checked={checked}
+                                disabled={!editable}
+                                onChange={() => onSetCell(prop.id, p.id, v.key)}
+                                style={{ accentColor: selColor, width: 15, height: 15, margin: 0, flexShrink: 0, cursor: editable ? 'pointer' : 'default' }}
+                              />
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: '0.82rem', fontWeight: checked ? 600 : 400, color: checked ? selColor : NEUTRAL.darkGray }}>
+                                {v.label}
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                      {showFeedback && expert && (
+                        <div style={{ marginTop: 6, paddingTop: 6, borderTop: `1px dashed ${NEUTRAL.intLightGray}` }}>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                            <span style={{
+                              display: 'inline-flex', alignItems: 'center', gap: 5, padding: '2px 8px', borderRadius: 999,
+                              background: `${(matches ? PRIMARY.green : PRIMARY.brightOrange)}1A`,
+                              border: `1px solid ${matches ? PRIMARY.green : PRIMARY.brightOrange}`,
+                              color: matches ? PRIMARY.green : PRIMARY.brightOrange,
+                              fontFamily: MONO, fontSize: '0.72rem', fontWeight: 700,
+                            }}>
+                              <span aria-hidden="true">{matches ? '✓' : '↻'}</span>{matches ? 'Correct' : 'Not quite — revise to continue'}
+                            </span>
+                          </div>
+                          <div style={{ ...TEXT.caption, color: NEUTRAL.darkGray, fontWeight: 400 }}>{expert.why}</div>
+                        </div>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ============================================================================
+// PAPER OVERVIEW — expandable panel above the table, with folder-style tabs
+// for each paper once more than one exists. Shows the selected paper's method
+// + evidence. Pattern from the reference: CollapsibleStudyOverview + folder tabs.
+// TODO: DEV - swap for shared CollapsibleStudyOverview + TAB_STYLES tabs.
+// ============================================================================
+function PaperOverview({ papers, activeId, onSelect, canAddPaper = false, onAddPaper }) {
+  const paper = papers.find(p => p.id === activeId) || papers[0];
+  const addRef = useRef(null);
+
+  // When the add-study tab becomes available, bring it into view so it's
+  // clearly the next thing to interact with.
+  useEffect(() => {
+    if (canAddPaper && addRef.current) {
+      addRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [canAddPaper]);
+
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <style>{`
+        @keyframes addTabGlow {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(111,0,255,0.0); }
+          50%      { box-shadow: 0 0 0 4px rgba(111,0,255,0.35); }
+        }
+      `}</style>
+      {/* folder-style tabs */}
+      <div style={{ display: 'flex', alignItems: 'center', borderBottom: `1px solid ${NEUTRAL.midGray}`, padding: '0 4px' }}>
+        {papers.map((p, i) => {
+          const isActive = p.id === paper.id;
+          return (
+            <button key={p.id} onClick={() => onSelect(p.id)}
+              style={{
+                padding: '8px 16px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem', fontFamily: 'inherit',
+                background: isActive ? NEUTRAL.black : NEUTRAL.intLightGray,
+                color: isActive ? NEUTRAL.white : NEUTRAL.black,
+                border: `1px solid ${NEUTRAL.midGray}`,
+                borderBottom: isActive ? 'none' : `1px solid ${NEUTRAL.midGray}`,
+                borderTopLeftRadius: i === 0 ? 6 : 0,
+                marginLeft: i === 0 ? 0 : -1, marginBottom: -1, position: 'relative', zIndex: isActive ? 1 : 0,
+              }}>
+              {p.short}
+            </button>
+          );
+        })}
+        {canAddPaper && (
+          <button ref={addRef} onClick={onAddPaper} title="Add a related study"
+            style={{
+              padding: '8px 16px', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem', fontFamily: 'inherit',
+              background: PRIMARY.purple, color: NEUTRAL.white,
+              border: `1px solid ${PRIMARY.purple}`,
+              borderTopLeftRadius: papers.length === 0 ? 6 : 0, borderTopRightRadius: 6,
+              marginLeft: papers.length === 0 ? 0 : 8, marginBottom: -1,
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              animation: 'addTabGlow 1.6s ease-in-out infinite',
+            }}>
+            <span style={{ fontSize: '1.05rem', lineHeight: 1 }}>+</span> Add a related study
+          </button>
+        )}
+      </div>
+
+      {/* selected study's method + evidence */}
+      <div style={{ border: `1px solid ${NEUTRAL.midGray}`, borderTop: 'none', borderBottomLeftRadius: 8, borderBottomRightRadius: 8, padding: 16, background: NEUTRAL.white }}>
+        <div style={{ ...TEXT.text, fontWeight: 700, marginBottom: 2 }}>{paper.title}</div>
+        <div style={{ ...TEXT.caption, color: NEUTRAL.accessibleGray, marginBottom: 12 }}>{paper.citation}</div>
+
+        <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+          <div style={{ flex: '1 1 280px', minWidth: 240 }}>
+            <div style={{ ...TEXT.caption, fontFamily: MONO, color: PRIMARY.blue, marginBottom: 4 }}>METHOD</div>
+            <div style={{ ...TEXT.textLight, marginBottom: 6 }}>{paper.method}</div>
+          </div>
+          <div style={{ flex: '1 1 280px', minWidth: 240 }}>
+            <div style={{ ...TEXT.caption, fontFamily: MONO, color: PRIMARY.green, marginBottom: 4 }}>EVIDENCE</div>
+            <div style={{ ...TEXT.textLight }}>{paper.evidence}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// MAIN
+// ============================================================================
+const SCREEN_HEADINGS = ['Overview', 'Judge the First Study', 'Add a Second Study', 'Add Your Claim', 'How Others Approached It', 'Done'];
+
+function KnowledgeMapActivity() {
+  const [screen, setScreen] = useState(1);
+
+  const [judgments, setJudgments] = useState({});        // { "propId|paperId": verdictKey }
+  const [activePaper, setActivePaper] = useState('P1');
+  const [p2Added, setP2Added] = useState(false);
+  const [rowAdded, setRowAdded] = useState(false);
+  const [proposedText, setProposedText] = useState('');
+  const [proposedImportance, setProposedImportance] = useState('');
+  const [submittedP1, setSubmittedP1] = useState(false); // column submitted → feedback shown
+  const [submittedP2, setSubmittedP2] = useState(false);
+  const [peerPick, setPeerPick] = useState('');          // selected peer claim id (most interesting to pursue)
+  const [showHints, setShowHints] = useState(false);
+  const [alert, setAlert] = useState(null);
+
+  const NEW_ROW_ID = 'learner_prop';
+
+  // Visible columns depend on whether P2 has been added.
+  const visiblePapers = PAPERS.filter(p => p.id === 'P1' || (p.id === 'P2' && p2Added));
+
+  // Visible rows include the learner row once added (screen 4+).
+  const baseProps = PROPOSITIONS;
+  const learnerRow = rowAdded
+    ? [{ id: NEW_ROW_ID, label: proposedText.trim() || 'Your claim', detail: 'A claim you added — it must be judged against every paper.' }]
+    : [];
+  const visibleProps = [...baseProps, ...learnerRow];
+
+  const setCell = (propId, paperId, verdictKey) =>
+    setJudgments(prev => ({ ...prev, [cellKey(propId, paperId)]: verdictKey }));
+
+  // --- column fill / submit / match helpers ---
+  const columnFilled = (paperId) => PROPOSITIONS.every(p => judgments[cellKey(p.id, paperId)]);
+  const columnMatchesExpert = (paperId) =>
+    PROPOSITIONS.every(p => {
+      const exp = EXPERT_CELLS[cellKey(p.id, paperId)]?.verdict;
+      return judgments[cellKey(p.id, paperId)] === exp;
+    });
+
+  const p1ColumnFilled = columnFilled('P1');
+  const p2ColumnFilled = columnFilled('P2');
+  const learnerRowFilled = visiblePapers.every(p => judgments[cellKey(NEW_ROW_ID, p.id)]);
+  const proposeValid = proposedText.trim().length > 0 && learnerRowFilled && proposedImportance.trim().length > 0;
+
+  // After submit, the user must revise every differing cell to match the expert
+  // before advancing (hard match). The mechanism row's rationale reframes why
+  // "consistent" is the right read for one study without implying it settles the claim.
+  const screenGate = {
+    1: true,
+    2: submittedP1 && columnMatchesExpert('P1'),
+    3: p2Added && submittedP2 && columnMatchesExpert('P2'),
+    4: proposeValid,
+    5: peerPick !== '',
+    6: true,
+  };
+  const isLast = screen === TOTAL_SCREENS;
+  const canProceed = screenGate[screen] ?? true;
+  const nextDisabledMessage = {
+    2: submittedP1 ? 'Correct the highlighted cells to continue' : 'Judge every cell, then submit to check your answers',
+    3: !p2Added ? 'Add the second study to continue' : submittedP2 ? 'Correct the highlighted cells to continue' : 'Judge every cell in the new column, then submit',
+    4: 'Name your claim, judge it against each study, and say why it matters to continue',
+    5: 'Pick the claim you find most interesting to pursue to continue',
+  }[screen] || 'Complete this step to continue';
+
+  // Columns accept input only before submit (locked after, except differing cells
+  // which stay editable so the user can revise to match).
+  const editablePaperIds =
+    screen === 2 ? ['P1']
+    : screen === 3 ? (p2Added ? ['P2'] : [])
+    : screen === 4 ? visiblePapers.map(p => p.id)
+    : [];
+
+  // Per-screen feedback config passed to the matrix: which paper column shows
+  // expert feedback, and the rows it covers.
+  const feedbackPaperId = screen === 2 && submittedP1 ? 'P1' : screen === 3 && submittedP2 ? 'P2' : null;
+
+  const goNext = () => {
+    if (screen < TOTAL_SCREENS) { setScreen(s => s + 1); setAlert(null); }
+    else setScreen(99);
+  };
+  const goPrev = () => {
+    if (screen === 99) setScreen(TOTAL_SCREENS);
+    else setScreen(s => Math.max(1, s - 1));
+    setAlert(null);
+  };
+
+  const submitColumn = (paperId) => {
+    const matches = columnMatchesExpert(paperId);
+    if (paperId === 'P1') setSubmittedP1(true);
+    if (paperId === 'P2') setSubmittedP2(true);
+    setAlert(matches
+      ? { severity: 'success', text: 'All correct. Review the reasoning, then continue.' }
+      : { severity: 'warning', text: 'Some answers aren\'t right yet (highlighted). Read the reasoning and correct those cells to continue.' });
+  };
+
+  const addPaper2 = () => {
+    setP2Added(true);
+    setActivePaper('P2');
+  };
+
+  const addRow = () => {
+    setRowAdded(true);
+    setAlert({ severity: 'info', text: 'Your claim is now a row in the table above — with empty cells under every paper. A new claim is not free: you owe the existing evidence a verdict on it.' });
+  };
+
+  // ---- Congrats ----
+  if (screen === 99) {
+    return (
+      <>
+        <PageContainer>
+          <div style={{ textAlign: 'center', padding: '40px 16px' }}>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>🗺️</div>
+            <h1 style={{ ...TEXT.title, marginBottom: 16 }}>Knowledge Map Complete</h1>
+            <p style={{ ...TEXT.text, maxWidth: 600, margin: '0 auto 12px' }}>
+              You laid a theory out as a table of propositions and judged each one against the evidence — paper by paper —
+              watching a single row gain meaning only once a second study filled in beside the first.
+            </p>
+            <p style={{ ...TEXT.text, maxWidth: 600, margin: '0 auto' }}>
+              The claim you added — and your sense of which open questions are worth pursuing — carry forward into Lesson 2B.
+            </p>
+          </div>
+        </PageContainer>
+        <NavigationBar onPrevious={goPrev} canGoPrevious={true} showPrevious={true} canGoNext={false} nextLabel="" />
+      </>
+    );
+  }
+
+  const overviewEl = (
+    <PaperOverview
+      papers={visiblePapers}
+      activeId={activePaper}
+      onSelect={setActivePaper}
+      canAddPaper={screen === 3 && !p2Added}
+      onAddPaper={addPaper2}
+    />
+  );
+
+  const matrixEl = (
+    <EvidenceMatrix
+      propositions={visibleProps}
+      papers={visiblePapers}
+      judgments={judgments}
+      onSetCell={setCell}
+      editablePaperIds={editablePaperIds}
+      highlightPropId={screen === 3 && p2Added ? 'interference' : null}
+      newPropId={rowAdded ? NEW_ROW_ID : null}
+      feedbackPaperId={feedbackPaperId}
+      lockedPaperIds={[
+        ...(submittedP1 && columnMatchesExpert('P1') ? ['P1'] : []),
+        ...(submittedP2 && columnMatchesExpert('P2') ? ['P2'] : []),
+      ]}
+    />
+  );
+
+  return (
+    <>
+      <PageContainer>
+        <ProgressIndicator current={screen} total={TOTAL_SCREENS} leftLabel={SCREEN_HEADINGS[screen - 1]} rightLabel={`Screen ${screen} of ${TOTAL_SCREENS}`} />
+        {alert && <InlineAlert severity={alert.severity} onClose={() => setAlert(null)}>{alert.text}</InlineAlert>}
+
+        {/* SCREEN 1 — intro / overview */}
+        {screen === 1 && (
+          <>
+            <InstructionCard title="Building a Knowledge Map">
+              <p style={{ ...TEXT.textLight, marginBottom: 8 }}>
+                A scientific theory isn't one statement — it's a set of smaller claims, each of which the evidence can support, refute, or not address.
+              </p>
+              <p style={{ ...TEXT.textLight }}>
+                In this activity, you'll engage with and expand on a scientific theory, by evaluating individual claims against real studies.
+              </p>
+            </InstructionCard>
+            <div style={{ ...TEXT.caption, fontFamily: MONO, color: NEUTRAL.accessibleGray, marginBottom: 8 }}>THE SCIENTIFIC THEORY YOU'LL MAP</div>
+            <div style={{
+              display: 'block', background: 'rgba(255, 152, 0, 0.15)', border: '1px solid rgba(255, 152, 0, 0.4)',
+              borderRadius: 6, padding: '12px 16px',
+            }}>
+              <span style={{ ...TEXT.text, fontWeight: 600 }}>{THEORY.claim}</span>
+            </div>
+          </>
+        )}
+
+        {/* SCREEN 2 — judge the first study, then submit to check answers */}
+        {screen === 2 && (
+          <>
+            <InstructionCard title="Judge the First Study">
+              <p style={{ ...TEXT.textLight }}>
+                For each claim, decide whether this study's evidence supports it, refutes it, or doesn't address it.
+              </p>
+            </InstructionCard>
+            {overviewEl}
+            {matrixEl}
+            <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
+              {!submittedP1 && (
+                <StyledButton variant="primary" size="compact" disabled={!p1ColumnFilled} onClick={() => submitColumn('P1')}
+                  title={!p1ColumnFilled ? 'Judge every claim first' : undefined}>
+                  Submit
+                </StyledButton>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* SCREEN 3 — add a second study column */}
+        {screen === 3 && (
+          <>
+            <InstructionCard title="Add a Second Study">
+              <p style={{ ...TEXT.textLight }}>
+                Bring in a second study and weigh it against the same claims. See how one claim that a single study left open can settle once a second study addresses it.
+              </p>
+            </InstructionCard>
+            {overviewEl}
+            {matrixEl}
+            <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
+              {p2Added && !submittedP2 && (
+                <StyledButton variant="primary" size="compact" disabled={!p2ColumnFilled} onClick={() => submitColumn('P2')}
+                  title={!p2ColumnFilled ? 'Judge every claim first' : undefined}>
+                  Submit
+                </StyledButton>
+              )}
+            </div>
+          </>
+        )}
+        {screen === 4 && (
+          <>
+            <InstructionCard title="Add Your Own Claim">
+              <p style={{ ...TEXT.textLight }}>
+                Add a claim worth pursuing as a new row, then judge it against each study already in the table.
+                Adding a claim isn't free — you have to ask what the existing evidence already says about it.
+                Then explain why this claim would matter to pursue.
+              </p>
+            </InstructionCard>
+
+            {overviewEl}
+
+            {matrixEl}
+
+            <div style={{ marginTop: 20, marginBottom: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}>
+                <div style={{ ...TEXT.caption }}>Your new claim (this becomes a row in the table above)</div>
+                <StyledButton variant="tertiary" size="mini" onClick={() => setShowHints(h => !h)}>
+                  {showHints ? 'Hide ideas' : 'Need an idea?'}
+                </StyledButton>
+              </div>
+              {showHints && (
+                <div style={{ border: `1px solid ${NEUTRAL.intLightGray}`, borderRadius: 8, padding: 14, marginBottom: 12, background: '#F0F4FF' }}>
+                  <div style={{ ...TEXT.caption, fontWeight: 700, color: PRIMARY.purple, marginBottom: 8 }}>Ways to find a claim worth pursuing</div>
+                  <ul style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {CLAIM_HINTS.map((h, i) => (
+                      <li key={i} style={{ ...TEXT.textLight }}>{h}</li>
+                    ))}
+                  </ul>
+                  <div style={{ ...TEXT.caption, color: NEUTRAL.accessibleGray, marginTop: 8, fontStyle: 'italic' }}>These are prompts to think with — write the claim in your own words.</div>
+                </div>
+              )}
+              <input type="text" value={proposedText} onChange={e => setProposedText(e.target.value)}
+                placeholder="State a claim the theory should make but hasn't been pinned down yet."
+                style={{ width: '100%', boxSizing: 'border-box', padding: 12, borderRadius: 8, border: `1px solid ${NEUTRAL.intLightGray}`, fontFamily: 'inherit', fontSize: '1rem', color: NEUTRAL.darkGray, marginBottom: 12 }} />
+              {!rowAdded ? (
+                <StyledButton variant="primary" size="compact" disabled={proposedText.trim().length === 0} onClick={addRow}>+ Add as a Row</StyledButton>
+              ) : (
+                <div style={{ ...TEXT.caption, color: PRIMARY.green }}>Row added to the table above — judge it against each study.</div>
+              )}
+            </div>
+
+            {rowAdded && learnerRowFilled && (
+              <div style={{ marginTop: 20 }}>
+                <div style={{ ...TEXT.caption, marginBottom: 8 }}>Why would this claim be important to pursue?</div>
+                <textarea value={proposedImportance} onChange={e => setProposedImportance(e.target.value)} rows={3}
+                  placeholder="What would settling this claim change about how we understand the theory?"
+                  style={{ width: '100%', boxSizing: 'border-box', padding: 12, borderRadius: 8, border: `1px solid ${NEUTRAL.intLightGray}`, fontFamily: 'inherit', fontSize: '1rem', color: NEUTRAL.darkGray, resize: 'vertical' }} />
+              </div>
+            )}
+          </>
+        )}
+
+        {/* SCREEN 5 — peer claims; pick the most interesting to pursue */}
+        {screen === 5 && (
+          <>
+            <InstructionCard title="How Others Approached the Same Step">
+              <p style={{ ...TEXT.textLight }}>
+                Here are claims other people added to this theory, and why each thinks it matters. Read them, then pick the one you find most interesting to pursue.
+              </p>
+            </InstructionCard>
+
+            {(proposedText.trim() || proposedImportance.trim()) && (
+              <div style={{ border: `2px solid ${PRIMARY.purple}`, borderRadius: 8, padding: 16, marginBottom: 16, background: 'rgba(111,0,255,0.04)' }}>
+                <div style={{ ...TEXT.caption, fontFamily: MONO, color: PRIMARY.purple, marginBottom: 4 }}>YOUR CLAIM</div>
+                <div style={{ ...TEXT.text, fontWeight: 600, marginBottom: proposedImportance.trim() ? 6 : 0 }}>{proposedText.trim() || '(none)'}</div>
+                {proposedImportance.trim() && <div style={{ ...TEXT.textLight }}><strong>Why it matters:</strong> {proposedImportance.trim()}</div>}
+              </div>
+            )}
+
+            <div style={{ ...TEXT.text, fontWeight: 700, marginBottom: 4 }}>{PEER_PICK_PROMPT}</div>
+            <div style={{ ...TEXT.caption, color: NEUTRAL.accessibleGray, marginBottom: 12 }}>Select one.</div>
+            <div role="radiogroup" aria-label={PEER_PICK_PROMPT} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {PEER_RESPONSES.map((peer) => {
+                const selected = peerPick === peer.id;
+                return (
+                  <label key={peer.id} style={{
+                    display: 'flex', alignItems: 'flex-start', gap: 12, cursor: 'pointer',
+                    border: `2px solid ${selected ? PRIMARY.purple : NEUTRAL.intLightGray}`,
+                    background: selected ? 'rgba(111,0,255,0.08)' : NEUTRAL.white,
+                    borderRadius: 8, padding: 14, transition: 'all 0.15s ease',
+                  }}>
+                    <input type="radio" name="peer-pick" value={peer.id} checked={selected}
+                      onChange={() => setPeerPick(peer.id)}
+                      style={{ accentColor: PRIMARY.purple, width: 17, height: 17, marginTop: 2, flexShrink: 0, cursor: 'pointer' }} />
+                    <div>
+                      <div style={{ ...TEXT.caption, fontFamily: MONO, color: NEUTRAL.accessibleGray, marginBottom: 4 }}>{peer.name.toUpperCase()}</div>
+                      <div style={{ ...TEXT.text, fontWeight: 600, marginBottom: 4 }}>{peer.claim}</div>
+                      <div style={{ ...TEXT.textLight }}><strong>Why it matters:</strong> {peer.importance}</div>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </PageContainer>
+
+      <NavigationBar
+        onPrevious={goPrev}
+        onNext={goNext}
+        canGoNext={canProceed}
+        canGoPrevious={screen > 1}
+        showPrevious={screen > 1}
+        nextLabel={isLast ? 'COMPLETE ACTIVITY' : 'NEXT'}
+        nextDisabledMessage={nextDisabledMessage}
+        attract={canProceed}
+      />
+    </>
+  );
+}
+
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<KnowledgeMapActivity />);
+</script>
+</body>
+</html>
