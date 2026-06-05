@@ -6,6 +6,9 @@
 ## Lesson 2a
 [Map out a Scientific Theory](https://c4r-io.github.io/duq_lit-activities/lesson2a_knowledge_map.html)
 
+## Lesson 2b
+[Write an outreach email](http://c4r-io.github.io/duq_lit-activities/write-an-outreach-email.html)
+
 ## Lesson 3 
 [Build a PubMed Search Strategy](https://c4r-io.github.io/duq_lit-activities/boolean-search-builder.html)
 
