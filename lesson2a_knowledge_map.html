@@ -530,7 +530,6 @@ function KnowledgeMapActivity() {
   const [judgments, setJudgments] = useState({});        // { "propId|paperId": verdictKey }
   const [activePaper, setActivePaper] = useState('P1');
   const [p2Added, setP2Added] = useState(false);
-  const [rowAdded, setRowAdded] = useState(false);
   const [proposedText, setProposedText] = useState('');
   const [proposedImportance, setProposedImportance] = useState('');
   const [submittedP1, setSubmittedP1] = useState(false); // column submitted → feedback shown
@@ -539,17 +538,12 @@ function KnowledgeMapActivity() {
   const [showHints, setShowHints] = useState(false);
   const [alert, setAlert] = useState(null);
 
-  const NEW_ROW_ID = 'learner_prop';
-
   // Visible columns depend on whether P2 has been added.
   const visiblePapers = PAPERS.filter(p => p.id === 'P1' || (p.id === 'P2' && p2Added));
 
-  // Visible rows include the learner row once added (screen 4+).
-  const baseProps = PROPOSITIONS;
-  const learnerRow = rowAdded
-    ? [{ id: NEW_ROW_ID, label: proposedText.trim() || 'Your claim', detail: 'A claim you added — it must be judged against every paper.' }]
-    : [];
-  const visibleProps = [...baseProps, ...learnerRow];
+  // Rows are the fixed theory claims (the learner proposes a claim on screen 4 but
+  // it is not added to the table — there's no answer key for a learner-authored claim).
+  const visibleProps = PROPOSITIONS;
 
   const setCell = (propId, paperId, verdictKey) =>
     setJudgments(prev => ({ ...prev, [cellKey(propId, paperId)]: verdictKey }));
@@ -564,8 +558,7 @@ function KnowledgeMapActivity() {
 
   const p1ColumnFilled = columnFilled('P1');
   const p2ColumnFilled = columnFilled('P2');
-  const learnerRowFilled = visiblePapers.every(p => judgments[cellKey(NEW_ROW_ID, p.id)]);
-  const proposeValid = proposedText.trim().length > 0 && learnerRowFilled && proposedImportance.trim().length > 0;
+  const proposeValid = proposedText.trim().length > 0 && proposedImportance.trim().length > 0;
 
   // After submit, the user must revise every differing cell to match the expert
   // before advancing (hard match). The mechanism row's rationale reframes why
@@ -623,11 +616,6 @@ function KnowledgeMapActivity() {
     setActivePaper('P2');
   };
 
-  const addRow = () => {
-    setRowAdded(true);
-    setAlert({ severity: 'info', text: 'Your claim is now a row in the table above — with empty cells under every paper. A new claim is not free: you owe the existing evidence a verdict on it.' });
-  };
-
   // ---- Congrats ----
   if (screen === 99) {
     return (
@@ -667,8 +655,8 @@ function KnowledgeMapActivity() {
       judgments={judgments}
       onSetCell={setCell}
       editablePaperIds={editablePaperIds}
-      highlightPropId={screen === 3 && p2Added ? 'interference' : null}
-      newPropId={rowAdded ? NEW_ROW_ID : null}
+      highlightPropId={null}
+      newPropId={null}
       feedbackPaperId={feedbackPaperId}
       lockedPaperIds={[
         ...(submittedP1 && columnMatchesExpert('P1') ? ['P1'] : []),
@@ -680,7 +668,14 @@ function KnowledgeMapActivity() {
   return (
     <>
       <PageContainer>
-        <ProgressIndicator current={screen} total={TOTAL_SCREENS} leftLabel={SCREEN_HEADINGS[screen - 1]} rightLabel={`Screen ${screen} of ${TOTAL_SCREENS}`} />
+        {screen >= 2 && screen <= 5 && (
+          <ProgressIndicator
+            current={screen - 1}
+            total={4}
+            leftLabel={SCREEN_HEADINGS[screen - 1]}
+            rightLabel={`Step ${screen - 1} of 4`}
+          />
+        )}
         {alert && <InlineAlert severity={alert.severity} onClose={() => setAlert(null)}>{alert.text}</InlineAlert>}
 
         {/* SCREEN 1 — intro / overview */}
@@ -749,9 +744,7 @@ function KnowledgeMapActivity() {
           <>
             <InstructionCard title="Add Your Own Claim">
               <p style={{ ...TEXT.textLight }}>
-                Add a claim worth pursuing as a new row, then judge it against each study already in the table.
-                Adding a claim isn't free — you have to ask what the existing evidence already says about it.
-                Then explain why this claim would matter to pursue.
+                Propose a claim worth pursuing — one the theory should settle but these studies haven't pinned down. Then explain why it would matter to pursue.
               </p>
             </InstructionCard>
 
@@ -761,7 +754,7 @@ function KnowledgeMapActivity() {
 
             <div style={{ marginTop: 20, marginBottom: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}>
-                <div style={{ ...TEXT.caption }}>Your new claim (this becomes a row in the table above)</div>
+                <div style={{ ...TEXT.caption }}>Your claim</div>
                 <StyledButton variant="tertiary" size="mini" onClick={() => setShowHints(h => !h)}>
                   {showHints ? 'Hide ideas' : 'Need an idea?'}
                 </StyledButton>
@@ -779,15 +772,10 @@ function KnowledgeMapActivity() {
               )}
               <input type="text" value={proposedText} onChange={e => setProposedText(e.target.value)}
                 placeholder="State a claim the theory should make but hasn't been pinned down yet."
-                style={{ width: '100%', boxSizing: 'border-box', padding: 12, borderRadius: 8, border: `1px solid ${NEUTRAL.intLightGray}`, fontFamily: 'inherit', fontSize: '1rem', color: NEUTRAL.darkGray, marginBottom: 12 }} />
-              {!rowAdded ? (
-                <StyledButton variant="primary" size="compact" disabled={proposedText.trim().length === 0} onClick={addRow}>+ Add as a Row</StyledButton>
-              ) : (
-                <div style={{ ...TEXT.caption, color: PRIMARY.green }}>Row added to the table above — judge it against each study.</div>
-              )}
+                style={{ width: '100%', boxSizing: 'border-box', padding: 12, borderRadius: 8, border: `1px solid ${NEUTRAL.intLightGray}`, fontFamily: 'inherit', fontSize: '1rem', color: NEUTRAL.darkGray }} />
             </div>
 
-            {rowAdded && learnerRowFilled && (
+            {proposedText.trim().length > 0 && (
               <div style={{ marginTop: 20 }}>
                 <div style={{ ...TEXT.caption, marginBottom: 8 }}>Why would this claim be important to pursue?</div>
                 <textarea value={proposedImportance} onChange={e => setProposedImportance(e.target.value)} rows={3}
